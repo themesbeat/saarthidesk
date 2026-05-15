@@ -10,7 +10,7 @@ export default function DashboardPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground">Here&apos;s what's happening with your customer conversations today.</p>
+          <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your customer conversations today.</p>
         </div>
       </div>
 
@@ -105,7 +105,7 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">Knowledge base utilized</p>
-                  <p className="text-xs text-muted-foreground mt-1">AI successfully answered 42 questions using the recently uploaded "Shipping Policy" document.</p>
+                  <p className="text-xs text-muted-foreground mt-1">AI successfully answered 42 questions using the recently uploaded &quot;Shipping Policy&quot; document.</p>
                 </div>
               </div>
             </div>

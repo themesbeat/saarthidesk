@@ -128,7 +128,7 @@ export default function LandingPage() {
         <section className="py-12 border-y border-border/50 bg-background">
           <div className="container mx-auto px-4">
             <p className="text-center text-[10px] font-bold text-foreground0 tracking-[0.2em] uppercase mb-8">
-              Powering conversations for India's fastest growing brands
+              Powering conversations for India&apos;s fastest growing brands
             </p>
             <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-50 grayscale">
               <span className="text-xl font-serif italic text-foreground">Lumina Clinic</span>
@@ -330,7 +330,7 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground italic leading-relaxed">
-                  "ChatSaarthi has practically automated our entire Instagram sales funnel. We saw a 40% increase in conversion within the first month."
+                  &quot;ChatSaarthi has practically automated our entire Instagram sales funnel. We saw a 40% increase in conversion within the first month.&quot;
                 </p>
               </div>
 
@@ -346,7 +346,7 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground italic leading-relaxed">
-                  "Managing patient appointments via WhatsApp was a nightmare. Now, the AI handles scheduling while I focus on surgery."
+                  &quot;Managing patient appointments via WhatsApp was a nightmare. Now, the AI handles scheduling while I focus on surgery.&quot;
                 </p>
               </div>
 
@@ -362,7 +362,7 @@ export default function LandingPage() {
                   </div>
                 </div>
                 <p className="text-sm text-muted-foreground italic leading-relaxed">
-                  "The human handoff feature is genius. My team only steps in for complex orders, saving us hours every single day."
+                  &quot;The human handoff feature is genius. My team only steps in for complex orders, saving us hours every single day.&quot;
                 </p>
               </div>
 
@@ -412,7 +412,7 @@ export default function LandingPage() {
                 <span className="font-bold text-foreground text-lg tracking-tight">SaarthiDesk</span>
               </div>
               <p className="text-xs leading-relaxed text-foreground0">
-                The AI-first communication platform for the next generation of India's enterprises.
+                The AI-first communication platform for the next generation of India&apos;s enterprises.
               </p>
             </div>
             
