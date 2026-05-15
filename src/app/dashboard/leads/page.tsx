@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Filter, MoreHorizontal, Calendar, MessageSquare, IndianRupee } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -133,7 +133,7 @@ function KanbanColumn({ title, count, color, children }: { title: string; count:
   );
 }
 
-function LeadCard({ name, source, value, daysAgo, tags, needsFollowUp = false }: any) {
+function LeadCard({ name, source, value, daysAgo, tags, needsFollowUp = false }: { name: string, source: string, value: string, daysAgo: string, tags: string[], needsFollowUp?: boolean }) {
   return (
     <div className={`bg-card border ${needsFollowUp ? 'border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.1)]' : 'border-border/50'} rounded-xl p-4 cursor-pointer hover:border-primary/50 hover:shadow-[0_0_20px_rgba(209,188,255,0.15)] transition-all group`}>
       <div className="flex justify-between items-start mb-3">

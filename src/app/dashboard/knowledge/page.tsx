@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { FileText, UploadCloud, Link as LinkIcon, Plus, Trash2, Search, Book, CheckCircle2 } from "lucide-react";
+import { FileText, UploadCloud, Link as LinkIcon, Trash2, Search, Book, CheckCircle2 } from "lucide-react";
 
 export default function KnowledgeBasePage() {
   return (

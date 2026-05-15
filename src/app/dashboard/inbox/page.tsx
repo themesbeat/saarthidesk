@@ -3,11 +3,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Search, Filter, MoreVertical, Phone, Video, 
-  Info, Paperclip, Smile, Send, Bot, Check, CheckCheck,
-  Camera, Mail, MessageCircle, Globe
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Search, Filter, MoreVertical, Phone,
+  Paperclip, Smile, Send, Bot, CheckCheck,
+  Camera, MessageCircle, Globe
 } from "lucide-react";
 
 export default function InboxPage() {
@@ -193,7 +193,7 @@ export default function InboxPage() {
               </div>
               <div>
                 <div className="bg-primary/90 text-primary-foreground px-4 py-3 rounded-2xl rounded-br-sm text-sm shadow-lg shadow-primary/20 relative group">
-                  Yes Arjun! We do have the Premium Package available. It's perfectly suited for salon businesses like yours, offering unlimited AI replies and advanced knowledge base integration. Would you like me to send you the pricing details?
+                  Yes Arjun! We do have the Premium Package available. It&apos;s perfectly suited for salon businesses like yours, offering unlimited AI replies and advanced knowledge base integration. Would you like me to send you the pricing details?
                   <div className="absolute top-2 -left-24 opacity-0 group-hover:opacity-100 transition-opacity bg-card text-xs px-2 py-1 rounded border border-border/50 text-muted-foreground">
                     Draft by AI
                   </div>
@@ -212,7 +212,7 @@ export default function InboxPage() {
             <textarea 
               className="w-full bg-transparent resize-none border-none focus:ring-0 text-sm text-foreground placeholder:text-muted-foreground/80 p-2 min-h-[60px]"
               placeholder="Type your message..."
-              defaultValue="Yes Arjun! We do have the Premium Package available. It's perfectly suited for salon businesses like yours, offering unlimited AI replies and advanced knowledge base integration. Would you like me to send you the pricing details?"
+              defaultValue="Yes Arjun! We do have the Premium Package available. It&apos;s perfectly suited for salon businesses like yours, offering unlimited AI replies and advanced knowledge base integration. Would you like me to send you the pricing details?"
             />
             <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/30">
               <div className="flex items-center gap-1">
