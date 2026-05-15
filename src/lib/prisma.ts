@@ -3,6 +3,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 
 const prismaClientSingleton = () => {
+  console.log("Initializing PrismaClient with SSL rejectUnauthorized: false");
   const connectionString = process.env.DATABASE_URL;
   const pool = new Pool({ 
     connectionString,
