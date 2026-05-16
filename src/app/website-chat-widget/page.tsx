@@ -15,8 +15,7 @@ import {
   Smartphone,
   Globe,
   RefreshCw,
-  CheckCircle2,
-  Mail
+  CheckCircle2
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";

@@ -4,21 +4,19 @@ import Link from "next/link";
 import { 
   Users, 
   MessageSquare, 
-  Tag, 
-  Zap, 
-  Shield, 
-  Clock, 
-  CheckCircle2, 
-  Play, 
-  AtSign, 
-  Target,
+  Zap,
   Activity,
   History,
+  Clock,
   Lock,
   Sparkles,
   Phone,
   Mail,
-  Instagram
+  Instagram,
+  AtSign,
+  Tag,
+  Target,
+  Shield
 } from "lucide-react";
 import Image from "next/image";
 import { Header } from "@/components/layout/Header";

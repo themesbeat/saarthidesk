@@ -1,13 +1,12 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { motion } from "framer-motion";
 import { 
   Users, Target, Layout, Bell, 
-  Tag, MessageSquare, BarChart3, 
+  Tag, 
   CheckCircle2, ShieldCheck, Zap, 
-  ArrowRight, Mail, Instagram, 
+  Mail, Instagram, 
   Phone, UserPlus, Layers, Lock,
   RefreshCw, Globe, Headset
 } from "lucide-react";
@@ -248,7 +247,7 @@ export default function LeadManagementPage() {
               </div>
               <h3 className="text-2xl font-bold text-white mb-4">Smart Categorization</h3>
               <p className="text-white/40 text-sm leading-relaxed mb-10 font-medium">
-                Automated tags like "Wholesale" or "High Intent" based on context.
+                Automated tags like &quot;Wholesale&quot; or &quot;High Intent&quot; based on context.
               </p>
               <div className="mt-auto flex flex-wrap gap-2">
                 <span className="px-3 py-1.5 rounded-lg bg-indigo-500/20 text-indigo-400 text-[10px] font-black uppercase tracking-widest">Hot Lead</span>
@@ -483,22 +482,25 @@ export default function LeadManagementPage() {
             <p className="text-white/40 text-lg font-medium">Robust infrastructure built to integrate seamlessly with your existing tech stack.</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { title: 'Custom API Access', desc: 'Full REST API documentation for custom integrations.', icon: RefreshCw },
-              { title: 'CRM Sync', desc: 'Native sync for Salesforce, Hubspot, and Zoho.', icon: RefreshCw },
-              { title: '24/7 Support', desc: 'Dedicated support for enterprise users.', icon: Headset },
-              { title: 'Dedicated Manager', desc: 'Strategic account support for large teams.', icon: Users },
-              { title: 'Custom Lead Fields', desc: 'Create unique data points for your leads.', icon: Layers },
-              { title: 'Automated Lead Enrichment', desc: 'Auto-find LinkedIn profiles and details.', icon: Zap },
-            ].map((feature, i) => (
-              <div key={feature.title} className="p-8 rounded-[2rem] bg-[#161624] border border-white/5 hover:border-blue-500/20 transition-all group">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-6 group-hover:bg-blue-500/20 transition-all">
-                  <feature.icon size={20} />
+            {Array.from({ length: 6 }).map((_, i) => {
+              const feature = [
+                { title: 'Custom API Access', desc: 'Full REST API documentation for custom integrations.', icon: RefreshCw },
+                { title: 'CRM Sync', desc: 'Native sync for Salesforce, Hubspot, and Zoho.', icon: RefreshCw },
+                { title: '24/7 Support', desc: 'Dedicated support for enterprise users.', icon: Headset },
+                { title: 'Dedicated Manager', desc: 'Strategic account support for large teams.', icon: Users },
+                { title: 'Custom Lead Fields', desc: 'Create unique data points for your leads.', icon: Layers },
+                { title: 'Automated Lead Enrichment', desc: 'Auto-find LinkedIn profiles and details.', icon: Zap },
+              ][i];
+              return (
+                <div key={feature.title} className="p-8 rounded-[2rem] bg-[#161624] border border-white/5 hover:border-blue-500/20 transition-all group">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-6 group-hover:bg-blue-500/20 transition-all">
+                    <feature.icon size={20} />
+                  </div>
+                  <h4 className="text-sm font-bold text-white mb-2">{feature.title}</h4>
+                  <p className="text-xs text-white/40 leading-relaxed font-medium">{feature.desc}</p>
                 </div>
-                <h4 className="text-sm font-bold text-white mb-2">{feature.title}</h4>
-                <p className="text-xs text-white/40 leading-relaxed font-medium">{feature.desc}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

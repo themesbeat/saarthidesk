@@ -1,15 +1,13 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { 
-  MessageCircle, Instagram, Mail, Globe, 
-  Zap, Shield, BarChart3, Bot, 
-  ArrowRight, CheckCircle2, Star,
-  Smartphone, Laptop, MessageSquare,
-  Clock, TrendingUp, Users
+  MessageCircle, Instagram, Globe, 
+  Zap,
+  ArrowRight, Sparkles, CheckCircle2,
+  ShieldCheck, Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -123,22 +121,22 @@ export default function UnifiedInboxPage() {
           >
             {[
               { 
-                icon: <MessageCircle className="text-emerald-400" />, 
+                icon: MessageCircle, 
                 title: "WhatsApp Business", 
                 desc: "Official API integration for bulk messaging and instant support with verified badges.",
-                color: "emerald"
+                color: "text-emerald-400"
               },
               { 
-                icon: <Instagram className="text-rose-400" />, 
+                icon: Instagram, 
                 title: "Instagram DMs", 
                 desc: "Manage comments, story mentions, and direct messages in a single streamlined thread.",
-                color: "rose"
+                color: "text-rose-400"
               },
               { 
-                icon: <Globe className="text-blue-400" />, 
+                icon: Globe, 
                 title: "Unified Email & Web", 
                 desc: "Sync Gmail, Outlook, and your custom domains results alongside your live website chat.",
-                color: "blue"
+                color: "text-blue-400"
               }
             ].map((feature, idx) => (
               <motion.div 
@@ -147,7 +145,7 @@ export default function UnifiedInboxPage() {
                 className="group p-10 rounded-[2.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all duration-500 flex flex-col items-start"
               >
                 <div className={`w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform shadow-inner`}>
-                  {React.cloneElement(feature.icon as React.ReactElement, { size: 28 })}
+                  <feature.icon size={28} className={feature.color} />
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-4 tracking-tight">{feature.title}</h3>
                 <p className="text-white/40 leading-relaxed text-sm">{feature.desc}</p>

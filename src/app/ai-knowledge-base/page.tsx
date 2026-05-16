@@ -1,13 +1,11 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { 
-  Brain, FileText, Globe, Youtube, 
-  RefreshCw, ShieldCheck, Search, 
-  ExternalLink, CheckCircle2, ArrowRight,
+  FileText, Globe, Youtube, 
+  RefreshCw, ShieldCheck, 
+  ExternalLink, ArrowRight,
   Database, Upload, Zap, Lock,
   MessageSquare, FileCode, Check
 } from "lucide-react";

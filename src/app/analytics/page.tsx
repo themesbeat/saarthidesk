@@ -1,19 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import React from "react";
 import { 
-  ArrowRight, 
-  Bot, 
-  Sparkles, 
-  Play, 
-  TrendingUp, 
-  Zap, 
-  Target, 
   BarChart3, 
-  PieChart, 
+  TrendingUp, 
   Activity, 
-  ChevronRight,
-  MousePointer2,
+  Zap, 
+  Play,
+  PieChart,
   DollarSign
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";

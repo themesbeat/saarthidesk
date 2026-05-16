@@ -1,16 +1,13 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { 
   Sparkles, Zap, Play, FileText, 
-  Settings2, Languages, LineChart, 
-  ShieldCheck, ArrowRight, UserPlus,
-  MessageSquare, Sliders, CheckCircle2,
-  Smile, Languages as LanguagesIcon,
-  Clock, Headset, MoreHorizontal, X, Send
+  LineChart, 
+  Sliders, CheckCircle2,
+  Languages as LanguagesIcon,
+  Headset, Send
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";

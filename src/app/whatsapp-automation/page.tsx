@@ -1,14 +1,12 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { 
   MessageCircle, Sparkles, Zap, Target, 
-  Calendar, CheckCircle2, Layout, 
-  ArrowRight, FileText, Send, MoreHorizontal,
-  Phone, UserPlus, Search, Menu
+  Calendar, CheckCircle2, 
+  ArrowRight, MoreHorizontal,
+  Phone
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/layout/Header";

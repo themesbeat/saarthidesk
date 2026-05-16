@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Bot, Database, CheckCircle2, Play, Sparkles, FileText, Link as LinkIcon, Users, Quote } from "lucide-react";
 import { ChatWidget } from "@/components/ChatWidget";
@@ -209,9 +210,9 @@ export default function LandingPage() {
                   </p>
                   <div className="flex items-center gap-3 mt-6">
                     <div className="flex -space-x-2">
-                      <div className="w-8 h-8 rounded-full border-2 border-border bg-slate-400 overflow-hidden"><img src="https://i.pravatar.cc/100?u=4" alt="Agent" className="w-full h-full object-cover" /></div>
-                      <div className="w-8 h-8 rounded-full border-2 border-border bg-slate-500 overflow-hidden"><img src="https://i.pravatar.cc/100?u=5" alt="Agent" className="w-full h-full object-cover" /></div>
-                      <div className="w-8 h-8 rounded-full border-2 border-border bg-slate-600 overflow-hidden"><img src="https://i.pravatar.cc/100?u=6" alt="Agent" className="w-full h-full object-cover" /></div>
+                      <div className="w-8 h-8 rounded-full border-2 border-border bg-slate-400 overflow-hidden"><Image src="https://i.pravatar.cc/100?u=4" alt="Agent" width={32} height={32} className="w-full h-full object-cover" /></div>
+                      <div className="w-8 h-8 rounded-full border-2 border-border bg-slate-500 overflow-hidden"><Image src="https://i.pravatar.cc/100?u=5" alt="Agent" width={32} height={32} className="w-full h-full object-cover" /></div>
+                      <div className="w-8 h-8 rounded-full border-2 border-border bg-slate-600 overflow-hidden"><Image src="https://i.pravatar.cc/100?u=6" alt="Agent" width={32} height={32} className="w-full h-full object-cover" /></div>
                     </div>
                     <span className="text-xs font-medium text-muted-foreground">Agents Online: 3</span>
                   </div>
@@ -300,7 +301,7 @@ export default function LandingPage() {
                 <Quote className="absolute top-6 right-6 w-8 h-8 text-foreground/5" />
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-xs overflow-hidden">
-                    <img src="https://i.pravatar.cc/150?u=1" alt="Avatar" className="w-full h-full object-cover opacity-80" />
+                    <Image src="https://i.pravatar.cc/150?u=1" alt="Avatar" width={40} height={40} className="w-full h-full object-cover opacity-80" />
                   </div>
                   <div>
                     <div className="text-sm font-bold text-foreground">Neha Mehta</div>
@@ -316,7 +317,7 @@ export default function LandingPage() {
                 <Quote className="absolute top-6 right-6 w-8 h-8 text-foreground/5" />
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-xs overflow-hidden">
-                    <img src="https://i.pravatar.cc/150?u=2" alt="Avatar" className="w-full h-full object-cover opacity-80" />
+                    <Image src="https://i.pravatar.cc/150?u=2" alt="Avatar" width={40} height={40} className="w-full h-full object-cover opacity-80" />
                   </div>
                   <div>
                     <div className="text-sm font-bold text-foreground">Dr. Rohan Mehta</div>
@@ -332,7 +333,7 @@ export default function LandingPage() {
                 <Quote className="absolute top-6 right-6 w-8 h-8 text-foreground/5" />
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-xs overflow-hidden">
-                    <img src="https://i.pravatar.cc/150?u=3" alt="Avatar" className="w-full h-full object-cover opacity-80" />
+                    <Image src="https://i.pravatar.cc/150?u=3" alt="Avatar" width={40} height={40} className="w-full h-full object-cover opacity-80" />
                   </div>
                   <div>
                     <div className="text-sm font-bold text-foreground">Siddharth K.</div>

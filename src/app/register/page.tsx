@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { Bot, Mail, Lock, User, ArrowRight, Loader2, CheckCircle2, Sparkles } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Loader2, CheckCircle2, Sparkles } from "lucide-react";
 
 export default function RegisterPage() {
     const [name, setName] = useState("");
@@ -33,6 +33,7 @@ export default function RegisterPage() {
                 router.push("/dashboard");
             }
         } catch (err) {
+            console.error(err);
             setError("An unexpected error occurred. Please try again.");
         } finally {
             setLoading(false);

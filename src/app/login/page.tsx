@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { Bot, Globe, Mail, Lock, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { Globe, Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
@@ -31,6 +31,7 @@ export default function LoginPage() {
                 router.push("/dashboard");
             }
         } catch (err) {
+            console.error(err);
             setError("An unexpected error occurred. Please try again.");
         } finally {
             setLoading(false);

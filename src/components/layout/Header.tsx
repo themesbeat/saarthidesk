@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDown, LogOut, LayoutDashboard, Sparkles } from "lucide-react";
+import { ChevronDown, LogOut, LayoutDashboard } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
 export function Header() {
