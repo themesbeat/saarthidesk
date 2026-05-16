@@ -2,23 +2,17 @@
 
 import Link from "next/link";
 import { 
-  ArrowRight, 
   Bot, 
   Sparkles, 
   Play, 
   Calendar, 
   Clock, 
-  ShieldCheck, 
   UserCheck, 
-  Smartphone, 
-  Zap, 
   Bell, 
-  RefreshCw, 
   AlertTriangle,
   CheckCircle2,
   CalendarCheck,
   Brain,
-  Globe,
   MessageSquare,
   Mail
 } from "lucide-react";
@@ -86,7 +80,7 @@ export default function AIReceptionistPage() {
                   </div>
 
                   <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-6">
-                     <p className="text-sm text-foreground mb-4 italic">"I've booked your dental checkup for Tuesday at 2 PM. Would you like a reminder?"</p>
+                     <p className="text-sm text-foreground mb-4 italic">&quot;I&apos;ve booked your dental checkup for Tuesday at 2 PM. Would you like a reminder?&quot;</p>
                      
                      <div className="bg-black/40 rounded-xl p-4 border border-white/5">
                         <div className="flex justify-between items-center mb-4">
@@ -176,7 +170,7 @@ export default function AIReceptionistPage() {
                    <div className="bg-black/40 border border-white/5 p-4 rounded-2xl">
                       <Clock className="w-4 h-4 text-orange-400 mb-2" />
                       <div className="text-xs font-bold text-white mb-1">24/7 After-Hours</div>
-                      <p className="text-[10px] text-muted-foreground">Never miss a lead, even when you're sleeping.</p>
+                      <p className="text-[10px] text-muted-foreground">Never miss a lead, even when you&apos;re sleeping.</p>
                    </div>
                    <div className="bg-black/40 border border-white/5 p-4 rounded-2xl">
                       <UserCheck className="w-4 h-4 text-blue-400 mb-2" />
@@ -241,7 +235,7 @@ export default function AIReceptionistPage() {
                <div className="flex-1 z-10">
                   <h2 className="text-4xl md:text-5xl font-bold text-white mb-8 tracking-tight">The Intelligence Behind the Desk</h2>
                   <p className="text-muted-foreground text-lg mb-10 leading-relaxed">
-                    Our proprietary LLM logic doesn't just scan for keywords. It understands complex scheduling constraints, verifies availability in real-time, and handles nuance like a trained professional.
+                    Our proprietary LLM logic doesn&apos;t just scan for keywords. It understands complex scheduling constraints, verifies availability in real-time, and handles nuance like a trained professional.
                   </p>
                   
                   <ul className="space-y-6">

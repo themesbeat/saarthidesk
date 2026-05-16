@@ -9,7 +9,6 @@ import {
   Zap, 
   MessageSquare,
   UserCheck,
-  MousePointer2,
   BarChart3,
   Settings,
   Bell,
@@ -17,11 +16,7 @@ import {
   Globe,
   RefreshCw,
   CheckCircle2,
-  Lock,
-  History,
-  Phone,
-  Mail,
-  Instagram
+  Mail
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -93,7 +88,7 @@ export default function WebsiteChatWidgetPage() {
                             Hello! How can I help you explore SaarthiDesk today?
                           </div>
                           <div className="bg-indigo-600/20 border border-indigo-500/20 p-4 rounded-2xl rounded-tr-none text-sm text-indigo-100 ml-auto text-right">
-                            I'm looking for pricing details for my small agency.
+                             I&apos;m looking for pricing details for my small agency.
                           </div>
                           <div className="flex gap-3">
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center text-[10px] font-bold">S</div>
@@ -175,7 +170,7 @@ export default function WebsiteChatWidgetPage() {
                 </div>
                 <h3 className="text-xl font-bold text-white mb-2">24/7 AI Chat Assistant</h3>
                 <p className="text-muted-foreground text-sm max-w-sm">
-                  Our AI understands context and intent, providing instant support even while your team sleeps. No more "We'll get back to you in 24 hours."
+                  Our AI understands context and intent, providing instant support even while your team sleeps. No more &quot;We&apos;ll get back to you in 24 hours.&quot;
                 </p>
                 {/* Visual Element */}
                 <div className="absolute top-1/2 right-0 -translate-y-1/2 w-1/2 h-full opacity-30 pointer-events-none">

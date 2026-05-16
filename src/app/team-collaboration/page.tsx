@@ -15,12 +15,12 @@ import {
   Activity,
   History,
   Lock,
-  ArrowRight,
   Sparkles,
   Phone,
   Mail,
   Instagram
 } from "lucide-react";
+import Image from "next/image";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ChatWidget } from "@/components/ChatWidget";
@@ -158,8 +158,12 @@ export default function TeamCollaborationPage() {
                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                    <span className="text-[10px] font-bold text-emerald-400">Assigned to Rahul Verma</span>
                    <div className="flex -space-x-2">
-                      <div className="w-5 h-5 rounded-full border border-border bg-slate-600 overflow-hidden"><img src="https://i.pravatar.cc/100?u=4" className="w-full h-full object-cover" /></div>
-                      <div className="w-5 h-5 rounded-full border border-border bg-slate-700 overflow-hidden"><img src="https://i.pravatar.cc/100?u=5" className="w-full h-full object-cover" /></div>
+                      <div className="w-5 h-5 rounded-full border border-border bg-slate-600 overflow-hidden relative">
+                        <Image src="https://i.pravatar.cc/100?u=4" alt="User" fill className="object-cover" />
+                      </div>
+                      <div className="w-5 h-5 rounded-full border border-border bg-slate-700 overflow-hidden relative">
+                        <Image src="https://i.pravatar.cc/100?u=5" alt="User" fill className="object-cover" />
+                      </div>
                    </div>
                 </div>
               </div>
@@ -328,8 +332,8 @@ export default function TeamCollaborationPage() {
 
             <div className="flex-1 w-full max-w-md space-y-4">
                <div className="bg-card/80 backdrop-blur-xl border border-border/50 p-4 rounded-2xl flex items-center gap-4 animate-float shadow-xl">
-                  <div className="w-12 h-12 rounded-full border-2 border-primary overflow-hidden">
-                     <img src="https://i.pravatar.cc/100?u=12" className="w-full h-full object-cover" />
+                  <div className="w-12 h-12 rounded-full border-2 border-primary overflow-hidden relative">
+                     <Image src="https://i.pravatar.cc/100?u=12" alt="Anjali" fill className="object-cover" />
                   </div>
                   <div className="flex-1">
                      <div className="text-sm font-bold text-foreground">Anjali P.</div>
@@ -340,8 +344,8 @@ export default function TeamCollaborationPage() {
                </div>
                
                <div className="bg-card/80 backdrop-blur-xl border border-border/50 p-4 rounded-2xl flex items-center gap-4 animate-float delay-700 ml-12 shadow-xl">
-                  <div className="w-12 h-12 rounded-full border-2 border-indigo-500 overflow-hidden">
-                     <img src="https://i.pravatar.cc/100?u=13" className="w-full h-full object-cover" />
+                  <div className="w-12 h-12 rounded-full border-2 border-indigo-500 overflow-hidden relative">
+                     <Image src="https://i.pravatar.cc/100?u=13" alt="Vikram" fill className="object-cover" />
                   </div>
                   <div className="flex-1">
                      <div className="text-sm font-bold text-foreground">Vikram S.</div>

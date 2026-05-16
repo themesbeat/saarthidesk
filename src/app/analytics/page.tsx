@@ -266,7 +266,7 @@ export default function AnalyticsPage() {
 
                 <div className="space-y-4">
                   {[
-                    { intent: 'CANCEL_SUBSCRIBE', text: 'I want to cancel my subscription? It\'s too...', time: 'Just now', color: 'bg-rose-500/20 text-rose-400' },
+                    { intent: 'CANCEL_SUBSCRIBE', text: 'I want to cancel my subscription? It&apos;s too...', time: 'Just now', color: 'bg-rose-500/20 text-rose-400' },
                     { intent: 'FEATURE_QUERY', text: 'Can I integrate with my local Shopify store?', time: '2m ago', color: 'bg-blue-500/20 text-blue-400' },
                     { intent: 'GREETING', text: 'Hello, how can I help you today?', time: '5m ago', color: 'bg-emerald-500/20 text-emerald-400' },
                   ].map((item, i) => (
