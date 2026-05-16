@@ -7,14 +7,23 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth.api.getSession({
+    headers: await headers()
+  });
+
+  const user = session?.user;
+  const initials = user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'JD';
+
   return (
-    <div className="flex h-screen bg-background text-foreground overflow-hidden">
+    <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans">
       {/* Left Sidebar */}
       <aside className="w-64 border-r border-border/50 bg-background/80 backdrop-blur-xl flex flex-col flex-shrink-0">
         <div className="h-16 flex items-center px-6 border-b border-border/50">
@@ -48,14 +57,14 @@ export default function DashboardLayout({
           <div className="flex items-center gap-3 bg-muted p-3 rounded-xl border border-border/50">
             <div className="relative">
               <Avatar className="w-10 h-10 border border-border/50">
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>JD</AvatarFallback>
+                <AvatarImage src={user?.image || undefined} />
+                <AvatarFallback>{initials}</AvatarFallback>
               </Avatar>
               <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-background shadow-[0_0_8px_rgba(52,211,153,0.8)]"></div>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-foreground">John Doe</p>
-              <p className="text-xs text-muted-foreground truncate">Admin</p>
+              <p className="text-sm font-medium truncate text-foreground">{user?.name || "User"}</p>
+              <p className="text-xs text-muted-foreground truncate">{user?.email || "No email"}</p>
             </div>
           </div>
         </div>

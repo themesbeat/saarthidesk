@@ -8,20 +8,27 @@ const prismaClientSingleton = () => {
     throw new Error("DATABASE_URL is not set");
   }
   
-  console.log("Initializing PrismaClient with custom PG Pool");
+  // Mask connection string for logging
+  const maskedURL = connectionString.replace(/:[^@:]+@/, ':****@');
+  console.log(`[Prisma] Initializing with URL: ${maskedURL}`);
+  
+  // Force ignore SSL errors globally for this process if needed (debug)
+  // process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+  
   const pool = new Pool({ 
     connectionString,
     ssl: {
       rejectUnauthorized: false
-    },
-    max: 20,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    }
   });
   
   const adapter = new PrismaPg(pool);
-  return new PrismaClient({ adapter });
+  return new PrismaClient({ 
+    adapter,
+    log: ['error', 'warn']
+  });
 };
+
 
 
 declare global {

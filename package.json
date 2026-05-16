@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate"
@@ -12,14 +12,14 @@
   "dependencies": {
     "@base-ui/react": "^1.4.1",
     "@better-auth/prisma-adapter": "^1.6.11",
+    "@better-fetch/fetch": "^1.1.21",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
-    "@supabase/supabase-js": "^2.105.4",
     "better-auth": "^1.6.11",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.38.0",
-    "lucide-react": "^1.16.0",
+    "lucide-react": "0.460.0",
     "next": "15.5.18",
     "pg": "^8.20.0",
     "react": "19.1.0",
