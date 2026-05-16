@@ -41,7 +41,7 @@ export function Header() {
                     { title: 'Analytics', desc: 'Detailed insights & reporting', href: '/analytics' },
                     { title: 'Team Collaboration', desc: 'Assign & manage tickets', href: '/team-collaboration' },
                     { title: 'Website Chat Widget', desc: 'Convert visitors directly', href: '/website-chat-widget' },
-                    { title: 'AI Receptionist', desc: 'Handle calls intelligently', href: '#' },
+                    { title: 'AI Receptionist', desc: 'Handle calls intelligently', href: '/ai-receptionist' },
                   ].map(item => (
                     <Link key={item.title} href={item.href} className="flex flex-col gap-1 p-3 rounded-xl hover:bg-muted/80 transition-colors">
                       <span className="text-foreground font-semibold text-sm">{item.title}</span>
