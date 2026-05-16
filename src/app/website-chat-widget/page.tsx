@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { 
   ArrowRight, 
   Bot, 
@@ -90,7 +91,13 @@ export default function WebsiteChatWidgetPage() {
                              I&apos;m looking for pricing details for my small agency.
                           </div>
                           <div className="flex gap-3">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center text-[10px] font-bold">S</div>
+                            <Image 
+                              src="/saarthi-desk-logo.png" 
+                              alt="SaarthiDesk Logo" 
+                              width={42} 
+                              height={42} 
+                              className="w-10 h-10 rounded-full"
+                            />
                             <div className="bg-white/5 border border-white/10 p-4 rounded-2xl rounded-tl-none text-sm text-foreground">
                               <div className="flex items-center gap-2 text-indigo-400 text-[10px] font-bold mb-1 uppercase tracking-wider">
                                 <Sparkles className="w-3 h-3" /> AI AGENT
@@ -125,8 +132,13 @@ export default function WebsiteChatWidgetPage() {
                       
                       <div className="h-full flex flex-col p-6 pt-12">
                          <div className="flex items-center gap-3 mb-8">
-                            <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-xs font-bold">S</div>
-                            <span className="font-bold text-white tracking-tight">SaarthiDesk</span>
+                            <Image 
+                              src="/saarthi-desk-logo.png" 
+                              alt="SaarthiDesk Logo" 
+                              width={156} 
+                              height={42} 
+                              className="h-8 w-auto"
+                            />
                          </div>
                          
                          <div className="mt-auto mb-4">

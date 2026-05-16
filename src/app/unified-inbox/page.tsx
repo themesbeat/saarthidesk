@@ -5,9 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { 
   MessageCircle, Instagram, Globe, 
-  Zap,
-  ArrowRight, Sparkles, CheckCircle2,
-  ShieldCheck, Clock
+  Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 

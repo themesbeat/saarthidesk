@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { 
   LayoutDashboard, Inbox, Users, BookOpen, Bot, 
   Workflow, BarChart3, Settings, Bell, Search, 
@@ -28,10 +29,13 @@ export default async function DashboardLayout({
       <aside className="w-64 border-r border-border/50 bg-background/80 backdrop-blur-xl flex flex-col flex-shrink-0">
         <div className="h-16 flex items-center px-6 border-b border-border/50">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center font-bold text-primary-foreground shadow-[0_0_15px_rgba(209,188,255,0.5)]">
-              S
-            </div>
-            <span className="font-bold text-lg tracking-tight">SaarthiDesk</span>
+            <Image 
+              src="/saarthi-desk-logo.png" 
+              alt="SaarthiDesk Logo" 
+              width={182} 
+              height={47} 
+              className="h-9 w-auto"
+            />
           </Link>
         </div>
         

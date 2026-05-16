@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ChevronDown, LogOut, LayoutDashboard } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 
@@ -16,10 +17,14 @@ export function Header() {
       <div className="container mx-auto px-4 h-16 flex items-center">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center font-bold text-foreground shadow-[0_0_15px_rgba(99,102,241,0.5)]">
-              S
-            </div>
-            <span className="font-bold text-xl tracking-tight">SaarthiDesk</span>
+            <Image 
+              src="/saarthi-desk-logo.png" 
+              alt="SaarthiDesk Logo" 
+              width={195} 
+              height={52} 
+              className="h-10 w-auto"
+              priority
+            />
           </Link>
         </div>
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground ml-auto mr-8">
@@ -65,7 +70,13 @@ export function Header() {
                     <h4 className="text-xs font-bold text-foreground0 uppercase tracking-wider mb-4 px-2">By Industry</h4>
                     <div className="flex flex-col space-y-1">
                       {['Clinics', 'Salons', 'Gyms', 'Real Estate', 'Ecommerce', 'Coaching Institutes', 'Agencies'].map(item => (
-                        <Link key={item} href="#" className="text-sm hover:text-foreground transition-colors py-2 px-2 hover:bg-muted/80 rounded-lg">{item}</Link>
+                        <Link 
+                          key={item} 
+                          href={item === 'Clinics' ? "/solutions/clinics" : item === 'Salons' ? "/solutions/salons" : item === 'Gyms' ? "/solutions/gyms" : item === 'Real Estate' ? "/solutions/real-estate" : item === 'Ecommerce' ? "/solutions/ecommerce" : item === 'Coaching Institutes' ? "/solutions/coaching" : item === 'Agencies' ? "/solutions/agencies" : "#"} 
+                          className="text-sm hover:text-foreground transition-colors py-2 px-2 hover:bg-muted/80 rounded-lg"
+                        >
+                          {item}
+                        </Link>
                       ))}
                     </div>
                   </div>

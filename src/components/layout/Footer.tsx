@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
   return (
@@ -7,10 +8,13 @@ export function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-16">
           <div className="col-span-2 md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-6 h-6 rounded bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center font-bold text-foreground text-xs">
-                S
-              </div>
-              <span className="font-bold text-foreground text-lg tracking-tight">SaarthiDesk</span>
+              <Image 
+                src="/saarthi-desk-logo.png" 
+                alt="SaarthiDesk Logo" 
+                width={156} 
+                height={42} 
+                className="h-8 w-auto"
+              />
             </div>
             <p className="text-xs leading-relaxed text-foreground0 max-w-xs">
               The AI-first communication platform for the next generation of India&apos;s enterprises.
@@ -22,7 +26,7 @@ export function Footer() {
             <ul className="space-y-3 text-xs font-medium">
               <li><Link href="/unified-inbox" className="hover:text-foreground transition-colors">Unified Inbox</Link></li>
               <li><Link href="#" className="hover:text-foreground transition-colors">WhatsApp Automation</Link></li>
-              <li><Link href="#" className="hover:text-foreground transition-colors">AI Replies</Link></li>
+              <li><Link href="/ai-replies" className="hover:text-foreground transition-colors">AI Replies</Link></li>
               <li><Link href="#" className="hover:text-foreground transition-colors">Knowledge Base</Link></li>
               <li><Link href="#" className="hover:text-foreground transition-colors">Lead Management</Link></li>
               <li><Link href="#" className="hover:text-foreground transition-colors">Analytics</Link></li>
@@ -32,11 +36,13 @@ export function Footer() {
           <div>
             <h4 className="text-foreground font-bold text-xs mb-4 tracking-[0.1em] uppercase">Solutions</h4>
             <ul className="space-y-3 text-xs font-medium">
-              <li><Link href="#" className="hover:text-foreground transition-colors">For Clinics</Link></li>
-              <li><Link href="#" className="hover:text-foreground transition-colors">For Salons</Link></li>
-              <li><Link href="#" className="hover:text-foreground transition-colors">For Gyms</Link></li>
-              <li><Link href="#" className="hover:text-foreground transition-colors">For Ecommerce</Link></li>
-              <li><Link href="#" className="hover:text-foreground transition-colors">For Agencies</Link></li>
+              <li><Link href="/solutions/clinics" className="hover:text-foreground transition-colors">For Clinics</Link></li>
+              <li><Link href="/solutions/salons" className="hover:text-foreground transition-colors">For Salons</Link></li>
+              <li><Link href="/solutions/gyms" className="hover:text-foreground transition-colors">For Gyms</Link></li>
+              <li><Link href="/solutions/real-estate" className="hover:text-foreground transition-colors">For Real Estate</Link></li>
+              <li><Link href="/solutions/ecommerce" className="hover:text-foreground transition-colors">For Ecommerce</Link></li>
+              <li><Link href="/solutions/coaching" className="hover:text-foreground transition-colors">For Coaching</Link></li>
+              <li><Link href="/solutions/agencies" className="hover:text-foreground transition-colors">For Agencies</Link></li>
             </ul>
           </div>
 

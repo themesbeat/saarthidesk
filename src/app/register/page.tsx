@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { Mail, Lock, User, ArrowRight, Loader2, CheckCircle2, Sparkles } from "lucide-react";
@@ -51,10 +52,13 @@ export default function RegisterPage() {
             <div className="w-full max-w-[900px] z-10 flex flex-col lg:flex-row gap-12 items-center">
                 <div className="flex-1 text-center lg:text-left">
                     <Link href="/" className="inline-flex items-center gap-2 mb-8 group">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center font-bold text-foreground shadow-[0_0_20px_rgba(99,102,241,0.4)] group-hover:scale-110 transition-transform">
-                            S
-                        </div>
-                        <span className="font-bold text-2xl tracking-tight">SaarthiDesk</span>
+                        <Image 
+                            src="/saarthi-desk-logo.png" 
+                            alt="SaarthiDesk Logo" 
+                            width={234} 
+                            height={62} 
+                            className="h-12 w-auto group-hover:scale-105 transition-transform"
+                        />
                     </Link>
                     
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/30 text-xs font-semibold text-primary mb-6">

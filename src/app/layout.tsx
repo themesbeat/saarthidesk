@@ -10,6 +10,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "SaarthiDesk | AI Employee for Customer Conversations",
   description: "Manage WhatsApp, Instagram, email, and website chats from one intelligent inbox.",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
