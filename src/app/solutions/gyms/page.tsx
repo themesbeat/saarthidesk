@@ -6,27 +6,11 @@ import {
   Calendar, 
   MessageSquare, 
   Bell, 
-  Search, 
   Inbox, 
-  FileText, 
-  Sparkles, 
-  ClipboardList,
-  CheckCircle2,
   Bot,
-  Shield,
-  Clock,
   TrendingUp,
-  UserCheck,
-  Star,
-  Tag,
-  Megaphone,
-  Users,
   Zap,
-  Play,
-  ArrowRight,
-  Activity,
-  BarChart3,
-  Dumbbell
+  Play
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -128,7 +112,7 @@ export default function GymsSolutionPage() {
                       </div>
                    </div>
                    <div className="bg-primary/20 rounded-xl rounded-tr-none p-3 text-[10px] text-white/90 ml-auto max-w-[80%] border border-primary/20 flex items-center justify-between">
-                      "Yes, send me one"
+                      &quot;Yes, send me one&quot;
                       <Zap className="w-3 h-3 text-primary" />
                    </div>
                 </div>
@@ -261,7 +245,7 @@ export default function GymsSolutionPage() {
                       <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5"></div>
                       <div className="flex-1">
                          <p className="text-[11px] text-white/80 leading-relaxed">
-                            New trial booked: <span className="text-white font-bold">"strength & conditioning"</span>
+                            New trial booked: <span className="text-white font-bold">&quot;strength & conditioning&quot;</span>
                          </p>
                          <span className="text-[9px] text-white/20 font-medium">2m ago</span>
                       </div>

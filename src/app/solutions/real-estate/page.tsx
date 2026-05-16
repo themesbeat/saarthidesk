@@ -5,30 +5,17 @@ import Link from "next/link";
 import { 
   Calendar, 
   MessageSquare, 
-  Bell, 
-  Search, 
-  Inbox, 
-  FileText, 
-  Sparkles, 
-  ClipboardList,
   CheckCircle2,
   Bot,
   Shield,
   Clock,
-  TrendingUp,
-  UserCheck,
-  Star,
-  Tag,
-  Megaphone,
   Users,
   Zap,
   Play,
   ArrowRight,
   Activity,
-  BarChart3,
-  MapPin,
-  Home,
-  DollarSign
+  DollarSign,
+  Sparkles
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -237,7 +224,7 @@ export default function RealEstateSolutionPage() {
                   </div>
                   <h3 className="text-2xl font-bold text-white mb-4 leading-tight">Smart Scheduling</h3>
                   <p className="text-base text-white/40 leading-relaxed max-w-xs">
-                    AI books viewings directly into your agent's calendars based on availability and property location.
+                    AI books viewings directly into your agent&apos;s calendars based on availability and property location.
                   </p>
                 </div>
                 

@@ -6,23 +6,10 @@ import {
   Calendar, 
   MessageSquare, 
   Bell, 
-  Search, 
-  Inbox, 
-  FileText, 
-  Sparkles, 
-  ClipboardList,
   CheckCircle2,
   Bot,
-  Shield,
-  Clock,
-  TrendingUp,
-  UserCheck,
-  Star,
-  Tag,
-  Megaphone,
-  Users,
   Zap,
-  Scissors
+  Megaphone
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";

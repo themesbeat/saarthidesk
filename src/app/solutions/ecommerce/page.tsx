@@ -3,35 +3,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { 
-  Calendar, 
   MessageSquare, 
-  Bell, 
-  Search, 
-  Inbox, 
   FileText, 
-  Sparkles, 
-  ClipboardList,
-  CheckCircle2,
-  Bot,
-  Shield,
-  Clock,
-  TrendingUp,
-  UserCheck,
-  Star,
-  Tag,
-  Megaphone,
-  Users,
   Zap,
-  Play,
   ArrowRight,
-  Activity,
   BarChart3,
   ShoppingCart,
   ShoppingBag,
   Instagram,
   RefreshCw,
   Globe,
-  Plus
+  Inbox
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -129,7 +111,7 @@ export default function EcommerceSolutionPage() {
                   </div>
                   <h3 className="text-2xl font-bold text-white mb-4 leading-tight">AI Customer Support</h3>
                   <p className="text-base text-white/40 leading-relaxed mb-10 max-w-md">
-                    Neural agents resolving 70% of common queries using live Shopify data. They don't just chat; they solve.
+                    Neural agents resolving 70% of common queries using live Shopify data. They don&apos;t just chat; they solve.
                   </p>
                 </div>
                 
@@ -158,7 +140,7 @@ export default function EcommerceSolutionPage() {
                   </div>
                   <h3 className="text-2xl font-bold text-white mb-4 leading-tight">Order Automation</h3>
                   <p className="text-sm text-white/40 leading-relaxed">
-                    Real-time tracking and "Where is my order?" resolution directly in chat.
+                    Real-time tracking and &quot;Where is my order?&quot; resolution directly in chat.
                   </p>
                 </div>
                 <div className="mt-6 flex items-center gap-2 text-[10px] font-bold text-blue-400 uppercase tracking-widest">

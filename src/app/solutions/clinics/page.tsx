@@ -7,17 +7,12 @@ import {
   MessageSquare, 
   Bell, 
   Search, 
-  Inbox, 
   FileText, 
-  Sparkles, 
   ClipboardList,
   CheckCircle2,
   Bot,
   Shield,
-  Clock,
   TrendingUp,
-  UserCheck,
-  Star,
   Tag
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
@@ -107,7 +102,7 @@ export default function ClinicsSolutionPage() {
                     </div>
                     <div className="p-5 space-y-4 flex-1">
                       <div className="bg-white/5 rounded-2xl rounded-tl-none p-3 text-[10px] text-white/80 max-w-[85%] border border-white/5">
-                        Hello, I'd like to book an appointment for tomorrow.
+                        Hello, I&apos;d like to book an appointment for tomorrow.
                       </div>
                       <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-none p-3 text-[10px] ml-auto max-w-[85%] shadow-lg shadow-primary/10">
                         Sure! We have slots at 10 AM and 2 PM tomorrow. Which one works for you?
@@ -116,7 +111,7 @@ export default function ClinicsSolutionPage() {
                          10 AM please.
                       </div>
                       <div className="bg-primary text-primary-foreground rounded-2xl rounded-tr-none p-3 text-[10px] ml-auto max-w-[85%] shadow-lg shadow-primary/10">
-                        Confirmed! You're booked for 10:00 AM. I've sent a reminder.
+                        Confirmed! You&apos;re booked for 10:00 AM. I&apos;ve sent a reminder.
                       </div>
                     </div>
                   </div>
@@ -204,7 +199,7 @@ export default function ClinicsSolutionPage() {
                 <div className="mt-20">
                    <div className="bg-[#0a0c10]/80 backdrop-blur-xl rounded-2xl p-5 border border-white/10 space-y-3 transform group-hover:-translate-y-2 transition-transform">
                       <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">Notification Sent</div>
-                      <p className="text-[11px] text-white/80 italic">"Don't forget your 3 PM checkup!"</p>
+                      <p className="text-[11px] text-white/80 italic">&quot;Don&apos;t forget your 3 PM checkup!&quot;</p>
                    </div>
                 </div>
               </div>

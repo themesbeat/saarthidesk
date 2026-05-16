@@ -6,25 +6,13 @@ import {
   MessageSquare, 
   Sparkles, 
   BarChart3, 
-  Zap, 
-  Play, 
-  ArrowRight,
   Inbox,
-  Users,
-  Instagram,
   Mail,
-  CheckCircle2,
-  Bell,
-  Search,
   Plus,
-  Network,
   GitBranch,
-  MousePointer2,
   Layers,
   History,
   AtSign,
-  TrendingUp,
-  LineChart,
   Bot
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
@@ -211,7 +199,7 @@ export default function AgenciesSolutionPage() {
                  <div className="flex-1">
                     <h3 className="text-2xl font-bold text-white mb-4">Workflow Automation</h3>
                     <p className="text-sm text-white/40 leading-relaxed">
-                       "If Instagram Lead arrives, notify sales and generate AI summary."
+                       &quot;If Instagram Lead arrives, notify sales and generate AI summary.&quot;
                     </p>
                  </div>
                  <div className="flex-1 flex justify-center">

@@ -3,34 +3,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { 
-  Calendar, 
   MessageSquare, 
   Bell, 
-  Search, 
-  Inbox, 
-  FileText, 
   Sparkles, 
-  ClipboardList,
-  CheckCircle2,
-  Bot,
-  Shield,
-  Clock,
+  Plus,
   TrendingUp,
-  UserCheck,
-  Star,
-  Tag,
-  Megaphone,
-  Users,
   Zap,
   Play,
   ArrowRight,
-  Activity,
   BarChart3,
   GraduationCap,
-  BookOpen,
-  UserPlus,
-  LayoutDashboard,
-  Plus
+  UserPlus
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -114,7 +97,7 @@ export default function CoachingSolutionPage() {
           <div className="container mx-auto px-4">
             <div className="text-center mb-20 max-w-3xl mx-auto">
               <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white tracking-tight leading-tight">The Intelligence Behind Your Growth</h2>
-              <p className="text-white/40 text-lg">Everything you need to automate your institute's counseling office.</p>
+              <p className="text-white/40 text-lg">Everything you need to automate your institute&apos;s counseling office.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 max-w-7xl mx-auto">
@@ -136,7 +119,7 @@ export default function CoachingSolutionPage() {
                    <div className="flex items-start gap-3">
                       <div className="w-8 h-8 rounded-full bg-white/10 flex-shrink-0"></div>
                       <div className="bg-white/5 rounded-2xl rounded-tl-none p-4 text-[11px] text-white/80 border border-white/5">
-                         "The JEE Advanced batch starts on April 15th. Would you like to see the detailed faculty profile?"
+                         &quot;The JEE Advanced batch starts on April 15th. Would you like to see the detailed faculty profile?&quot;
                       </div>
                    </div>
                 </div>
@@ -256,30 +239,3 @@ export default function CoachingSolutionPage() {
     </div>
   );
 }
-
-// Support for fractional column spans if needed, but Tailwind 12-col usually sufficient.
-// To exactly match the design grid which looks like a mix of sizes:
-// AI Student Support: col-span-5
-// WhatsApp: col-span-7
-// Lead Manager: col-span-3.5 (Tailwind doesn't have 3.5 by default, using 3 or 4)
-// Let's adjust to standard 12-col that fits well.
-// Row 1: 5 + 7 = 12
-// Row 2: 3 + 3 + 6? No, Row 2 in image has WhatsApp tall? 
-// Actually, looking at image:
-// Row 1: [AI Support (tall)] [WhatsApp Auto (wide)]
-// Row 2: [Lead Manager] [Smart Reminders]
-// Row 3: [Shared Inbox (wide)] [Shared Brain] [Conversion Insights]
-// This means:
-// Col 1-5: AI Support (Rows 1-2)
-// Col 6-12: Row 1: WhatsApp
-// Col 6-12: Row 2: [Lead Manager (Col 6-9)] [Smart Reminders (Col 10-12)]
-// Row 3: [Shared Inbox (Col 1-7)] [Shared Brain (Col 8-10)] [Conversion Insights (Col 11-12)]
-
-// Updated Grid approach in the code:
-// AI Support: md:col-span-5 md:row-span-2
-// WhatsApp: md:col-span-7
-// Lead Manager: md:col-span-3
-// Smart Reminders: md:col-span-4
-// Shared Inbox: md:col-span-7
-// Shared Brain: md:col-span-2
-// Conversion Insights: md:col-span-3
