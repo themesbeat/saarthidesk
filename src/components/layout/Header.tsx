@@ -29,24 +29,24 @@ export function Header() {
         </div>
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-muted-foreground ml-auto mr-8">
           
-          {/* Products Mega Menu */}
+          {/* Features Mega Menu */}
           <div className="relative group py-4">
             <button className="flex items-center gap-1 hover:text-foreground transition-colors outline-none cursor-pointer">
-              Products <ChevronDown className="w-3 h-3 transition-transform duration-200 group-hover:rotate-180" />
+              Features <ChevronDown className="w-3 h-3 transition-transform duration-200 group-hover:rotate-180" />
             </button>
             <div className="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 w-[700px] z-50">
               <div className="bg-card/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl p-6">
                 <div className="grid grid-cols-3 gap-4">
                   {[
-                    { title: 'Unified Inbox', desc: 'All channels in one place', href: '/unified-inbox' },
-                    { title: 'AI Replies', desc: 'Automate responses instantly', href: '/ai-replies' },
-                    { title: 'WhatsApp Automation', desc: 'Broadcasts & drip campaigns', href: '/whatsapp-automation' },
-                    { title: 'AI Knowledge Base', desc: 'Train AI on your data', href: '/ai-knowledge-base' },
-                    { title: 'Lead Management', desc: 'Capture & qualify leads', href: '/lead-management' },
-                    { title: 'Analytics', desc: 'Detailed insights & reporting', href: '/analytics' },
-                    { title: 'Team Collaboration', desc: 'Assign & manage tickets', href: '/team-collaboration' },
-                    { title: 'Website Chat Widget', desc: 'Convert visitors directly', href: '/website-chat-widget' },
-                    { title: 'AI Receptionist', desc: 'Handle calls intelligently', href: '/ai-receptionist' },
+                    { title: 'Unified Inbox', desc: 'All channels in one place', href: '/features/unified-inbox' },
+                    { title: 'AI Replies', desc: 'Automate responses instantly', href: '/features/ai-replies' },
+                    { title: 'WhatsApp Automation', desc: 'Broadcasts & drip campaigns', href: '/features/whatsapp-automation' },
+                    { title: 'AI Knowledge Base', desc: 'Train AI on your data', href: '/features/ai-knowledge-base' },
+                    { title: 'Lead Management', desc: 'Capture & qualify leads', href: '/features/lead-management' },
+                    { title: 'Analytics', desc: 'Detailed insights & reporting', href: '/features/analytics' },
+                    { title: 'Team Collaboration', desc: 'Assign & manage tickets', href: '/features/team-collaboration' },
+                    { title: 'Website Chat Widget', desc: 'Convert visitors directly', href: '/features/website-chat-widget' },
+                    { title: 'AI Receptionist', desc: 'Handle calls intelligently', href: '/features/ai-receptionist' },
                   ].map(item => (
                     <Link key={item.title} href={item.href} className="flex flex-col gap-1 p-3 rounded-xl hover:bg-muted/80 transition-colors">
                       <span className="text-foreground font-semibold text-sm">{item.title}</span>
@@ -84,7 +84,27 @@ export function Header() {
                     <h4 className="text-xs font-bold text-foreground0 uppercase tracking-wider mb-4 px-2">By Use Case</h4>
                     <div className="flex flex-col space-y-1">
                       {['Customer Support', 'Lead Management', 'AI Receptionist', 'Appointment Booking', 'WhatsApp Sales', 'Customer Engagement'].map(item => (
-                        <Link key={item} href="#" className="text-sm hover:text-foreground transition-colors py-2 px-2 hover:bg-muted/80 rounded-lg">{item}</Link>
+                        <Link 
+                          key={item} 
+                          href={
+                            item === 'Customer Support' 
+                              ? '/solutions/customer-support' 
+                              : item === 'Lead Management' 
+                              ? '/solutions/lead-management' 
+                              : item === 'AI Receptionist'
+                              ? '/solutions/ai-receptionist'
+                              : item === 'Appointment Booking'
+                              ? '/solutions/appointment-booking'
+                              : item === 'WhatsApp Sales'
+                              ? '/solutions/whatsapp-sales'
+                              : item === 'Customer Engagement'
+                              ? '/solutions/customer-engagement'
+                              : '#'
+                          } 
+                          className="text-sm hover:text-foreground transition-colors py-2 px-2 hover:bg-muted/80 rounded-lg"
+                        >
+                          {item}
+                        </Link>
                       ))}
                     </div>
                   </div>

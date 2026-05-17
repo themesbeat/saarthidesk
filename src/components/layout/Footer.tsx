@@ -22,14 +22,14 @@ export function Footer() {
           </div>
           
           <div>
-            <h4 className="text-foreground font-bold text-xs mb-4 tracking-[0.1em] uppercase">Product</h4>
+            <h4 className="text-foreground font-bold text-xs mb-4 tracking-[0.1em] uppercase">Features</h4>
             <ul className="space-y-3 text-xs font-medium">
-              <li><Link href="/unified-inbox" className="hover:text-foreground transition-colors">Unified Inbox</Link></li>
-              <li><Link href="#" className="hover:text-foreground transition-colors">WhatsApp Automation</Link></li>
-              <li><Link href="/ai-replies" className="hover:text-foreground transition-colors">AI Replies</Link></li>
-              <li><Link href="#" className="hover:text-foreground transition-colors">Knowledge Base</Link></li>
-              <li><Link href="#" className="hover:text-foreground transition-colors">Lead Management</Link></li>
-              <li><Link href="#" className="hover:text-foreground transition-colors">Analytics</Link></li>
+              <li><Link href="/features/unified-inbox" className="hover:text-foreground transition-colors">Unified Inbox</Link></li>
+              <li><Link href="/features/whatsapp-automation" className="hover:text-foreground transition-colors">WhatsApp Automation</Link></li>
+              <li><Link href="/features/ai-replies" className="hover:text-foreground transition-colors">AI Replies</Link></li>
+              <li><Link href="/features/ai-knowledge-base" className="hover:text-foreground transition-colors">Knowledge Base</Link></li>
+              <li><Link href="/features/lead-management" className="hover:text-foreground transition-colors">Lead Management</Link></li>
+              <li><Link href="/features/analytics" className="hover:text-foreground transition-colors">Analytics</Link></li>
             </ul>
           </div>
           

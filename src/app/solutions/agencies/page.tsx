@@ -133,8 +133,8 @@ export default function AgenciesSolutionPage() {
                  <div className="text-sm font-bold text-white tracking-widest uppercase">Multi-channel Hub</div>
               </div>
 
-              {/* Card 4: AI Thread Summaries (7 cols) */}
-              <div className="md:col-span-7 bg-[#14171c] rounded-[2.5rem] border border-white/5 p-10 hover:border-primary/30 transition-all group flex flex-col md:flex-row gap-10 min-h-[300px]">
+              {/* Card 4: AI Thread Summaries (6 cols) */}
+              <div className="md:col-span-6 bg-[#14171c] rounded-[2.5rem] border border-white/5 p-10 hover:border-primary/30 transition-all group flex flex-col md:flex-row gap-10 min-h-[300px]">
                  <div className="flex-1">
                     <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-6 border border-primary/20">
                       <History className="w-5 h-5" />
@@ -152,8 +152,8 @@ export default function AgenciesSolutionPage() {
                  </div>
               </div>
 
-              {/* Card 5: Lead Pipeline (2.5 cols) */}
-              <div className="md:col-span-2.5 bg-[#14171c] rounded-[2.5rem] border border-white/5 p-8 hover:border-blue-400/30 transition-all group flex flex-col justify-between">
+              {/* Card 5: Lead Pipeline (3 cols) */}
+              <div className="md:col-span-3 bg-[#14171c] rounded-[2.5rem] border border-white/5 p-8 hover:border-blue-400/30 transition-all group flex flex-col justify-between">
                  <div className="w-10 h-10 rounded-xl bg-blue-400/10 text-blue-400 flex items-center justify-center border border-blue-400/20 mb-4">
                     <GitBranch className="w-5 h-5 rotate-90" />
                  </div>
@@ -163,8 +163,8 @@ export default function AgenciesSolutionPage() {
                  </div>
               </div>
 
-              {/* Card 6: @Mentions (2.5 cols) */}
-              <div className="md:col-span-2.5 bg-[#14171c] rounded-[2.5rem] border border-white/5 p-8 hover:border-orange-400/30 transition-all group flex flex-col justify-between">
+              {/* Card 6: @Mentions (3 cols) */}
+              <div className="md:col-span-3 bg-[#14171c] rounded-[2.5rem] border border-white/5 p-8 hover:border-orange-400/30 transition-all group flex flex-col justify-between">
                  <div className="w-10 h-10 rounded-xl bg-orange-400/10 text-orange-400 flex items-center justify-center border border-orange-400/20 mb-4">
                     <AtSign className="w-5 h-5" />
                  </div>
