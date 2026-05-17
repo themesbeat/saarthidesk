@@ -1,16 +1,173 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Search, Filter, MoreVertical, Phone,
-  Paperclip, Smile, Send, Bot, CheckCheck,
-  Camera, MessageCircle, Globe
+  Search,
+  Filter,
+  MoreVertical,
+  Phone,
+  Paperclip,
+  Smile,
+  Send,
+  Bot,
+  CheckCheck,
+  Globe,
+  MessageCircle,
+  Mail,
+  Smartphone,
+  Loader2,
+  AlertCircle,
+  HelpCircle
 } from "lucide-react";
 
 export default function InboxPage() {
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [messageInput, setMessageInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterTab, setFilterTab] = useState("all");
+  
+  // CRM Lead settings
+  const [leadStage, setLeadStage] = useState("NEW");
+  const [leadValue, setLeadValue] = useState(0);
+  const [leadNotes, setLeadNotes] = useState("");
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
+  const [isUpdatingLead, setIsUpdatingLead] = useState(false);
+  const [simulationRole, setSimulationRole] = useState<"USER" | "CUSTOMER">("USER");
+
+  const fetchConversations = async (autoSelectFirst = false) => {
+    try {
+      const res = await fetch("/api/inbox/conversations");
+      const data = await res.json();
+      if (data.conversations) {
+        setConversations(data.conversations);
+        if ((autoSelectFirst || !selectedConversationId) && data.conversations.length > 0) {
+          setSelectedConversationId(data.conversations[0].id);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load conversations:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchConversations(true);
+  }, []);
+
+  const activeConversation = conversations.find(
+    (c) => c.id === selectedConversationId
+  );
+
+  // Sync active CRM metrics when conversation selection changes
+  useEffect(() => {
+    if (activeConversation) {
+      setLeadStage(activeConversation.contact.lead?.stage || "NEW");
+      setLeadValue(activeConversation.contact.lead?.value || 0);
+      setLeadNotes(activeConversation.contact.lead?.notes || "");
+    }
+  }, [selectedConversationId, activeConversation]);
+
+  // Dispatch agent or simulated customer message
+  const handleSendMessage = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!selectedConversationId || !messageInput.trim()) return;
+
+    setIsSending(true);
+    const content = messageInput;
+    setMessageInput(""); // Clear immediately for instant feeling response
+
+    try {
+      const res = await fetch("/api/inbox/message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conversationId: selectedConversationId,
+          content,
+          sender: simulationRole,
+        }),
+      });
+
+      if (res.ok) {
+        // Trigger a fresh database reload to retrieve agent message & triggered AI auto-replies
+        await fetchConversations();
+      }
+    } catch (err) {
+      console.error("Error dispatching message:", err);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  // Save CRM pipeline updates
+  const handleUpdateLead = async () => {
+    if (!activeConversation) return;
+
+    setIsUpdatingLead(true);
+    try {
+      const res = await fetch("/api/inbox/lead", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contactId: activeConversation.contact.id,
+          stage: leadStage,
+          value: leadValue,
+          notes: leadNotes,
+        }),
+      });
+
+      if (res.ok) {
+        await fetchConversations();
+      }
+    } catch (err) {
+      console.error("Error saving CRM lead data:", err);
+    } finally {
+      setIsUpdatingLead(false);
+    }
+  };
+
+  // Helpers to fetch dynamic channels
+  const getChannelDetails = (channel: string) => {
+    switch (channel) {
+      case "WHATSAPP":
+        return { icon: <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />, label: "WhatsApp", color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" };
+      case "TELEGRAM":
+        return { icon: <Send className="w-3.5 h-3.5 text-sky-400" />, label: "Telegram", color: "bg-sky-500/10 text-sky-400 border-sky-500/20" };
+      case "EMAIL":
+        return { icon: <Mail className="w-3.5 h-3.5 text-amber-400" />, label: "Email", color: "bg-amber-500/10 text-amber-400 border-amber-500/20" };
+      case "SMS":
+        return { icon: <Smartphone className="w-3.5 h-3.5 text-rose-400" />, label: "SMS", color: "bg-rose-500/10 text-rose-400 border-rose-500/20" };
+      default:
+        return { icon: <Globe className="w-3.5 h-3.5 text-indigo-400" />, label: "Web Chat", color: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20" };
+    }
+  };
+
+  // Filtering filter logic
+  const filteredConversations = conversations.filter((c) => {
+    const matchesSearch =
+      c.contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.messages[c.messages.length - 1]?.content
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase());
+
+    if (filterTab === "unread") {
+      return matchesSearch && c.status === "OPEN";
+    }
+    if (filterTab === "ai") {
+      return matchesSearch && c.messages.some((m: any) => m.isAiGenerated);
+    }
+    return matchesSearch;
+  });
+
   return (
     <div className="h-full flex overflow-hidden">
       {/* LEFT PANEL: Conversation List */}
@@ -18,281 +175,408 @@ export default function InboxPage() {
         <div className="p-4 border-b border-border/50 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-foreground">Inbox</h2>
-            <Button variant="ghost" size="icon" className="text-muted-foreground">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:bg-muted"
+              onClick={() => fetchConversations()}
+            >
               <Filter className="w-4 h-4" />
             </Button>
           </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/80" />
-            <Input 
-              placeholder="Search messages..." 
+            <Input
+              placeholder="Search conversations..."
               className="pl-9 bg-card border-border/50 focus-visible:ring-primary"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Tabs defaultValue="all" className="w-full">
+          <Tabs value={filterTab} onValueChange={setFilterTab} className="w-full">
             <TabsList className="w-full grid grid-cols-3 bg-card border border-border/50">
               <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="unread">Unread</TabsTrigger>
-              <TabsTrigger value="ai">AI Active</TabsTrigger>
+              <TabsTrigger value="unread">Open</TabsTrigger>
+              <TabsTrigger value="ai">AI active</TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
-        
+
         <ScrollArea className="flex-1">
           <div className="flex flex-col">
-            {/* Mock Conversation 1 */}
-            <button className="flex items-start gap-3 p-4 border-b border-border/30 bg-primary/10 text-left hover:bg-muted transition-colors">
-              <div className="relative">
-                <Avatar>
-                  <AvatarFallback className="bg-primary/20 text-primary-foreground">AS</AvatarFallback>
-                </Avatar>
-                <div className="absolute -bottom-1 -right-1 bg-emerald-500 rounded-full p-0.5 border-2 border-slate-950">
-                  <MessageCircle className="w-2.5 h-2.5 text-foreground" />
-                </div>
+            {isLoading ? (
+              <div className="flex items-center justify-center p-8 gap-2 text-muted-foreground">
+                <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                <span>Loading threads...</span>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-baseline mb-0.5">
-                  <span className="font-semibold text-foreground truncate">Arjun Sharma</span>
-                  <span className="text-xs text-primary font-medium">10:42 AM</span>
-                </div>
-                <p className="text-sm text-muted-foreground truncate">Do you have the premium package available?</p>
-                <div className="flex gap-2 mt-2">
-                  <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-1.5 py-0">High Intent</Badge>
-                  <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20 px-1.5 py-0 flex items-center gap-1">
-                    <Bot className="w-3 h-3" /> Replying
-                  </Badge>
-                </div>
+            ) : filteredConversations.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground space-y-2">
+                <AlertCircle className="w-8 h-8 text-muted-foreground/50" />
+                <span className="text-sm">No conversations found</span>
               </div>
-            </button>
+            ) : (
+              filteredConversations.map((c) => {
+                const lastMsg = c.messages[c.messages.length - 1];
+                const channelInfo = getChannelDetails(c.channel);
+                const initials = c.contact.name
+                  .split(" ")
+                  .map((n: string) => n[0])
+                  .join("")
+                  .slice(0, 2);
 
-            {/* Mock Conversation 2 */}
-            <button className="flex items-start gap-3 p-4 border-b border-border/30 text-left hover:bg-muted transition-colors opacity-70">
-              <div className="relative">
-                <Avatar>
-                  <AvatarImage src="https://i.pravatar.cc/150?u=a042581f4e29026704d" />
-                  <AvatarFallback>P</AvatarFallback>
-                </Avatar>
-                <div className="absolute -bottom-1 -right-1 bg-rose-500 rounded-full p-0.5 border-2 border-slate-950">
-                  <Camera className="w-2.5 h-2.5 text-foreground" />
-                </div>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-baseline mb-0.5">
-                  <span className="font-medium text-foreground truncate">Priya Patel</span>
-                  <span className="text-xs text-muted-foreground/80">Yesterday</span>
-                </div>
-                <p className="text-sm text-muted-foreground truncate">Thanks for the information.</p>
-              </div>
-            </button>
-            
-            {/* Mock Conversation 3 */}
-            <button className="flex items-start gap-3 p-4 border-b border-border/30 text-left hover:bg-muted transition-colors opacity-70">
-              <div className="relative">
-                <Avatar>
-                  <AvatarFallback className="bg-muted text-muted-foreground">RK</AvatarFallback>
-                </Avatar>
-                <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-0.5 border-2 border-slate-950">
-                  <Globe className="w-2.5 h-2.5 text-foreground" />
-                </div>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex justify-between items-baseline mb-0.5">
-                  <span className="font-medium text-foreground truncate">Rahul Kumar</span>
-                  <span className="text-xs text-muted-foreground/80">Mon</span>
-                </div>
-                <p className="text-sm text-muted-foreground truncate">What are the clinic timings?</p>
-                <div className="flex gap-2 mt-2">
-                  <Badge variant="outline" className="text-[10px] bg-muted text-muted-foreground border-border px-1.5 py-0 flex items-center gap-1">
-                    <CheckCheck className="w-3 h-3" /> AI Handled
-                  </Badge>
-                </div>
-              </div>
-            </button>
+                const isSelected = c.id === selectedConversationId;
+
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => setSelectedConversationId(c.id)}
+                    className={`flex items-start gap-3 p-4 border-b border-border/30 text-left transition-colors relative ${
+                      isSelected
+                        ? "bg-primary/10 border-l-4 border-l-primary"
+                        : "hover:bg-muted bg-transparent"
+                    }`}
+                  >
+                    <div className="relative">
+                      <Avatar>
+                        <AvatarFallback className="bg-primary/20 text-primary-foreground font-semibold">
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -bottom-1 -right-1 bg-slate-950 rounded-full p-0.5 border border-border">
+                        {channelInfo.icon}
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-baseline mb-0.5">
+                        <span className="font-semibold text-foreground truncate">
+                          {c.contact.name}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {lastMsg ? new Date(lastMsg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Active"}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate leading-relaxed">
+                        {lastMsg ? lastMsg.content : "No messages yet"}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        <Badge variant="outline" className={`text-[9px] px-1.5 py-0 ${channelInfo.color}`}>
+                          {channelInfo.label}
+                        </Badge>
+                        {c.contact.lead?.stage && (
+                          <Badge variant="outline" className="text-[9px] bg-primary/5 text-primary border-primary/20 px-1.5 py-0">
+                            {c.contact.lead.stage}
+                          </Badge>
+                        )}
+                        {c.messages.some((m: any) => m.isAiGenerated) && (
+                          <Badge variant="outline" className="text-[9px] bg-indigo-500/10 text-indigo-300 border-indigo-500/20 px-1.5 py-0 flex items-center gap-0.5">
+                            <Bot className="w-2.5 h-2.5" /> AI active
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })
+            )}
           </div>
         </ScrollArea>
       </div>
 
       {/* CENTER: Chat Area */}
       <div className="flex-1 flex flex-col bg-background relative">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/10 via-slate-950 to-slate-950 pointer-events-none" />
-        
-        {/* Chat Header */}
-        <div className="h-16 border-b border-border/50 px-6 flex items-center justify-between bg-background/80 backdrop-blur-sm z-10">
-          <div className="flex items-center gap-3">
-            <Avatar>
-              <AvatarFallback className="bg-primary/20 text-primary-foreground">AS</AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="font-semibold text-foreground">Arjun Sharma</h3>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3 text-emerald-500" /> WhatsApp</span>
-                <span>•</span>
-                <span className="text-emerald-400">Online</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-              <Phone className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-              <MoreVertical className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-slate-950 to-slate-950 pointer-events-none" />
 
-        {/* Messages Area */}
-        <ScrollArea className="flex-1 p-6 relative z-10">
-          <div className="space-y-6 flex flex-col justify-end min-h-full">
-            <div className="flex justify-center">
-              <Badge variant="outline" className="bg-card border-border/50 text-muted-foreground/80 text-xs">Today</Badge>
-            </div>
-            
-            {/* Incoming Message */}
-            <div className="flex items-end gap-2 max-w-[80%]">
-              <Avatar className="w-8 h-8 mb-1">
-                <AvatarFallback className="bg-primary/20 text-primary-foreground text-xs">AS</AvatarFallback>
-              </Avatar>
-              <div>
-                <div className="bg-card border border-border/30 text-foreground px-4 py-3 rounded-2xl rounded-bl-sm text-sm">
-                  Hi, I saw your ad on Instagram.
-                </div>
-                <div className="text-[10px] text-muted-foreground/80 mt-1 ml-1">10:40 AM</div>
-              </div>
-            </div>
-            
-            {/* Incoming Message 2 */}
-            <div className="flex items-end gap-2 max-w-[80%]">
-              <Avatar className="w-8 h-8 mb-1 opacity-0">
-                <AvatarFallback>AS</AvatarFallback>
-              </Avatar>
-              <div>
-                <div className="bg-card border border-border/30 text-foreground px-4 py-3 rounded-2xl rounded-bl-sm text-sm">
-                  Do you have the premium package available for my salon business?
-                </div>
-                <div className="text-[10px] text-muted-foreground/80 mt-1 ml-1">10:42 AM</div>
-              </div>
-            </div>
-            
-            {/* AI Suggestion Bubble */}
-            <div className="flex justify-center my-4">
-              <div className="bg-primary/10 border border-primary/20 px-4 py-2 rounded-full flex items-center gap-3 shadow-lg shadow-primary/5 backdrop-blur-md">
-                <Bot className="w-4 h-4 text-primary animate-pulse" />
-                <span className="text-xs text-primary/80 font-medium">AI generated a suggested reply (98% confidence)</span>
-                <div className="flex gap-2 border-l border-primary/20 pl-3">
-                  <button className="text-xs font-bold text-primary hover:text-primary/80">Insert</button>
-                  <button className="text-xs font-bold text-muted-foreground hover:text-muted-foreground">Discard</button>
-                </div>
-              </div>
-            </div>
-            
-            {/* Outgoing Message (AI Draft) */}
-            <div className="flex items-end gap-2 max-w-[80%] self-end flex-row-reverse">
-              <div className="w-8 h-8 mb-1 shrink-0 bg-primary/90 rounded-full flex items-center justify-center border border-primary">
-                <span className="text-xs font-bold text-foreground">You</span>
-              </div>
-              <div>
-                <div className="bg-primary/90 text-primary-foreground px-4 py-3 rounded-2xl rounded-br-sm text-sm shadow-lg shadow-primary/20 relative group">
-                  Yes Arjun! We do have the Premium Package available. It&apos;s perfectly suited for salon businesses like yours, offering unlimited AI replies and advanced knowledge base integration. Would you like me to send you the pricing details?
-                  <div className="absolute top-2 -left-24 opacity-0 group-hover:opacity-100 transition-opacity bg-card text-xs px-2 py-1 rounded border border-border/50 text-muted-foreground">
-                    Draft by AI
+        {activeConversation ? (
+          <>
+            {/* Chat Header */}
+            <div className="h-16 border-b border-border/50 px-6 flex items-center justify-between bg-background/80 backdrop-blur-sm z-10">
+              <div className="flex items-center gap-3">
+                <Avatar>
+                  <AvatarFallback className="bg-primary/20 text-primary-foreground font-semibold">
+                    {activeConversation.contact.name
+                      .split(" ")
+                      .map((n: string) => n[0])
+                      .join("")
+                      .slice(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="font-semibold text-foreground">
+                    {activeConversation.contact.name
+                  }</h3>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      {getChannelDetails(activeConversation.channel).icon}
+                      {getChannelDetails(activeConversation.channel).label}
+                    </span>
+                    <span>•</span>
+                    <span className="text-emerald-400 font-medium">Online</span>
                   </div>
                 </div>
-                <div className="flex items-center justify-end gap-1 mt-1 mr-1">
-                  <span className="text-[10px] text-muted-foreground/80">Not sent yet</span>
-                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+                  <Phone className="w-4 h-4" />
+                </Button>
+                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
               </div>
             </div>
-          </div>
-        </ScrollArea>
 
-        {/* Input Area */}
-        <div className="p-4 bg-background/80 backdrop-blur-md border-t border-border/50 z-10">
-          <div className="bg-card border border-border/50 rounded-2xl p-2 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all">
-            <textarea 
-              className="w-full bg-transparent resize-none border-none focus:ring-0 text-sm text-foreground placeholder:text-muted-foreground/80 p-2 min-h-[60px]"
-              placeholder="Type your message..."
-              defaultValue="Yes Arjun! We do have the Premium Package available. It&apos;s perfectly suited for salon businesses like yours, offering unlimited AI replies and advanced knowledge base integration. Would you like me to send you the pricing details?"
-            />
-            <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/30">
-              <div className="flex items-center gap-1">
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted">
-                  <Paperclip className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted">
-                  <Smile className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="sm" className="h-8 text-primary hover:text-primary/80 hover:bg-primary/10 rounded-full px-3 gap-1">
-                  <Bot className="w-3.5 h-3.5" /> Tone: Professional
-                </Button>
+            {/* Messages Area */}
+            <ScrollArea className="flex-1 p-6 relative z-10">
+              <div className="space-y-6 flex flex-col justify-end min-h-full">
+                <div className="flex justify-center">
+                  <Badge variant="outline" className="bg-card border-border/50 text-muted-foreground/80 text-[10px]">
+                    Live Conversation Stream
+                  </Badge>
+                </div>
+
+                {activeConversation.messages.map((message: any) => {
+                  const isAgent = message.sender === "USER";
+                  const isAI = message.sender === "AI";
+                  const initials = activeConversation.contact.name
+                    .split(" ")
+                    .map((n: string) => n[0])
+                    .join("")
+                    .slice(0, 2);
+
+                  return (
+                    <div
+                      key={message.id}
+                      className={`flex items-end gap-2.5 max-w-[80%] ${
+                        isAgent || isAI ? "self-end flex-row-reverse" : "self-start"
+                      }`}
+                    >
+                      {!isAgent && !isAI ? (
+                        <Avatar className="w-8 h-8 mb-1 border border-border">
+                          <AvatarFallback className="bg-muted text-muted-foreground text-xs font-bold">
+                            {initials}
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : isAI ? (
+                        <div className="w-8 h-8 mb-1 shrink-0 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center border border-indigo-500/30">
+                          <Bot className="w-4 h-4 animate-pulse" />
+                        </div>
+                      ) : (
+                        <div className="w-8 h-8 mb-1 shrink-0 bg-primary text-foreground rounded-full flex items-center justify-center border border-primary/20">
+                          <span className="text-xs font-bold">ME</span>
+                        </div>
+                      )}
+                      <div>
+                        {isAI && (
+                          <span className="text-[10px] text-indigo-400 flex items-center gap-1 mb-1 font-medium select-none justify-end">
+                            <Bot className="w-3 h-3" /> AI Auto-Responder
+                          </span>
+                        )}
+                        {isAgent && (
+                          <span className="text-[10px] text-primary flex items-center gap-1 mb-1 font-medium select-none justify-end">
+                            Agent Response
+                          </span>
+                        )}
+
+                        <div
+                          className={`px-4 py-2.5 rounded-2xl text-sm relative group leading-relaxed ${
+                            isAgent
+                              ? "bg-primary text-foreground rounded-br-sm shadow-md"
+                              : isAI
+                              ? "bg-indigo-500/10 text-indigo-200 border border-indigo-500/20 rounded-br-sm"
+                              : "bg-card border border-border/30 text-foreground rounded-bl-sm"
+                          }`}
+                        >
+                          {message.content}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground/80 mt-1.5 ml-1">
+                          {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-              <Button className="h-8 rounded-full bg-primary/90 hover:bg-primary/80 text-foreground px-4 gap-2 shadow-[0_0_15px_rgba(209,188,255,0.3)]">
-                Send <Send className="w-3.5 h-3.5" />
-              </Button>
+            </ScrollArea>
+
+            {/* Input Area */}
+            <div className="p-4 bg-background/80 backdrop-blur-md border-t border-border/50 z-10">
+              <form onSubmit={handleSendMessage} className="bg-card border border-border/50 rounded-2xl p-2 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all">
+                <textarea
+                  className="w-full bg-transparent resize-none border-none focus:ring-0 text-sm text-foreground placeholder:text-muted-foreground/80 p-2 min-h-[60px] outline-none"
+                  placeholder={`Reply to ${activeConversation.contact.name} as ${
+                    simulationRole === "USER" ? "Agent (You)" : "Customer (Simulate inbound)"
+                  }...`}
+                  value={messageInput}
+                  onChange={(e) => setMessageInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                />
+                <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/30">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className={`h-8 rounded-full px-3 gap-1.5 text-xs font-semibold ${
+                        simulationRole === "USER"
+                          ? "bg-primary/20 text-primary border border-primary/30"
+                          : "bg-muted text-muted-foreground border border-border"
+                      }`}
+                      onClick={() => setSimulationRole("USER")}
+                    >
+                      Agent Mode
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className={`h-8 rounded-full px-3 gap-1.5 text-xs font-semibold ${
+                        simulationRole === "CUSTOMER"
+                          ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                          : "bg-muted text-muted-foreground border border-border"
+                      }`}
+                      onClick={() => setSimulationRole("CUSTOMER")}
+                    >
+                      Simulate Inbound
+                    </Button>
+                    <span className="text-[10px] text-muted-foreground flex items-center gap-1 select-none">
+                      <HelpCircle className="w-3 h-3 text-primary" /> press Enter to send
+                    </span>
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={isSending || !messageInput.trim()}
+                    className="h-8 rounded-full bg-primary/95 hover:bg-primary text-foreground px-4 gap-2 shadow-[0_0_15px_rgba(209,188,255,0.3)] disabled:opacity-50"
+                  >
+                    {isSending ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <>
+                        Send <Send className="w-3.5 h-3.5" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
             </div>
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-muted-foreground z-10">
+            <Bot className="w-12 h-12 text-primary/50 animate-pulse mb-3" />
+            <p className="text-base font-semibold text-foreground">Select a thread</p>
+            <p className="text-xs max-w-sm mt-1 leading-relaxed">
+              Choose a messaging conversation from the inbox pane to inspect chat context and update CRM settings.
+            </p>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* RIGHT PANEL: Details */}
+      {/* RIGHT PANEL: Lead & CRM Details */}
       <div className="w-80 flex-shrink-0 border-l border-border/50 bg-background/50 backdrop-blur-sm hidden lg:flex flex-col">
-        <div className="h-16 border-b border-border/50 flex items-center px-6">
-          <h2 className="font-semibold text-foreground">Details</h2>
+        <div className="h-16 border-b border-border/50 flex items-center justify-between px-6">
+          <h2 className="font-semibold text-foreground">CRM Profile</h2>
+          {activeConversation && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="text-[11px] h-7 px-2.5 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
+              disabled={isUpdatingLead}
+              onClick={handleUpdateLead}
+            >
+              {isUpdatingLead ? (
+                <Loader2 className="w-3 h-3 animate-spin mr-1" />
+              ) : (
+                "Save Changes"
+              )}
+            </Button>
+          )}
         </div>
-        
+
         <ScrollArea className="flex-1 p-6">
-          <div className="space-y-6">
-            {/* Contact Info */}
-            <div className="flex flex-col items-center text-center">
-              <Avatar className="w-20 h-20 mb-3 border-2 border-border/50">
-                <AvatarFallback className="bg-primary/20 text-primary-foreground text-xl">AS</AvatarFallback>
-              </Avatar>
-              <h3 className="text-lg font-bold text-foreground">Arjun Sharma</h3>
-              <p className="text-sm text-muted-foreground">+91 98765 43210</p>
-            </div>
-
-            {/* AI Summary */}
-            <div className="bg-card border border-border/50 rounded-xl p-4 space-y-3">
-              <div className="flex items-center gap-2 text-primary text-sm font-medium">
-                <Bot className="w-4 h-4" />
-                AI Summary
+          {activeConversation ? (
+            <div className="space-y-6">
+              {/* Contact Info */}
+              <div className="flex flex-col items-center text-center">
+                <Avatar className="w-16 h-16 mb-3 border border-border">
+                  <AvatarFallback className="bg-primary/20 text-primary-foreground text-lg font-bold">
+                    {activeConversation.contact.name
+                      .split(" ")
+                      .map((n: string) => n[0])
+                      .join("")
+                      .slice(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                <h3 className="text-base font-bold text-foreground">
+                  {activeConversation.contact.name}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {activeConversation.contact.email || "No email available"}
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Customer is a salon owner interested in the Premium package. Discovered via Instagram ad. Looking for pricing details.
-              </p>
-            </div>
 
-            {/* CRM Data */}
-            <div className="space-y-4">
-              <div>
-                <p className="text-xs text-muted-foreground/80 font-medium mb-1.5 uppercase tracking-wider">Lead Stage</p>
-                <select className="w-full bg-card border border-border/50 rounded-lg text-sm text-foreground px-3 py-2 focus:ring-1 focus:ring-primary outline-none">
-                  <option>New Lead</option>
-                  <option>Interested</option>
-                  <option>Follow Up</option>
-                  <option>Converted</option>
-                </select>
+              {/* Dynamic AI Summary */}
+              <div className="bg-card border border-border/50 rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2 text-primary text-xs font-semibold">
+                  <Bot className="w-3.5 h-3.5" />
+                  AI Lead Synthesis
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Active contact is connecting from a <strong>{getChannelDetails(activeConversation.channel).label}</strong> gateway. Currently labeled as a pipeline lead.
+                </p>
               </div>
-              
-              <div>
-                <p className="text-xs text-muted-foreground/80 font-medium mb-1.5 uppercase tracking-wider">Tags</p>
-                <div className="flex flex-wrap gap-2">
-                  <Badge className="bg-primary/20 text-primary/80 hover:bg-primary/30 border-none">Salon</Badge>
-                  <Badge className="bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 border-none">High Value</Badge>
-                  <Badge variant="outline" className="border-border/50 text-muted-foreground border-dashed hover:bg-muted cursor-pointer">+ Add</Badge>
+
+              {/* CRM Live Controls */}
+              <div className="space-y-4 pt-2">
+                <div>
+                  <label className="text-[10px] text-muted-foreground/80 font-bold mb-1.5 uppercase tracking-wider block">
+                    Pipeline Stage
+                  </label>
+                  <select
+                    className="w-full bg-card border border-border/50 rounded-lg text-xs text-foreground px-3 py-2 focus:ring-1 focus:ring-primary outline-none"
+                    value={leadStage}
+                    onChange={(e) => setLeadStage(e.target.value)}
+                  >
+                    <option value="NEW">New Lead</option>
+                    <option value="INTERESTED">Interested</option>
+                    <option value="FOLLOW_UP">Follow Up</option>
+                    <option value="CONVERTED">Converted</option>
+                    <option value="CLOSED">Closed</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-muted-foreground/80 font-bold mb-1.5 uppercase tracking-wider block">
+                    Est. Value ($ USD)
+                  </label>
+                  <Input
+                    type="number"
+                    className="bg-card border-border/50 focus-visible:ring-primary text-xs h-9"
+                    value={leadValue}
+                    onChange={(e) => setLeadValue(parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-muted-foreground/80 font-bold mb-1.5 uppercase tracking-wider block">
+                    Private Notes
+                  </label>
+                  <textarea
+                    className="w-full bg-card border border-border/50 rounded-lg text-xs text-muted-foreground px-3 py-2 min-h-[100px] focus:ring-1 focus:ring-primary outline-none resize-none"
+                    placeholder="Enter sales context, client requests, next actions..."
+                    value={leadNotes}
+                    onChange={(e) => setLeadNotes(e.target.value)}
+                  />
                 </div>
               </div>
-              
-              <div>
-                <p className="text-xs text-muted-foreground/80 font-medium mb-1.5 uppercase tracking-wider">Notes</p>
-                <textarea 
-                  className="w-full bg-card border border-border/50 rounded-lg text-sm text-muted-foreground px-3 py-2 min-h-[100px] focus:ring-1 focus:ring-primary outline-none resize-none"
-                  placeholder="Add private notes here..."
-                  defaultValue="Follow up with the salon specific pitch deck."
-                />
-              </div>
             </div>
-          </div>
+          ) : (
+            <div className="text-center p-6 text-muted-foreground/80 text-xs">
+              Select a thread to adjust CRM pipeline stats.
+            </div>
+          )}
         </ScrollArea>
       </div>
     </div>

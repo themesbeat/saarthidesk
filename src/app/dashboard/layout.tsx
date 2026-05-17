@@ -1,15 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
 import { 
-  LayoutDashboard, Inbox, Users, BookOpen, Bot, 
-  Workflow, BarChart3, Settings, Bell, Search, 
-  ChevronDown, Activity
+  Bell, Search, ChevronDown, Activity
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
+import SidebarNav from "./sidebar-nav";
+import { getOrCreateActiveWorkspace } from "@/lib/workspace";
 
 export default async function DashboardLayout({
   children,
@@ -22,6 +22,16 @@ export default async function DashboardLayout({
 
   const user = session?.user;
   const initials = user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'JD';
+
+  let workspaceName = "Acme Corp";
+  if (user?.id) {
+    try {
+      const workspace = await getOrCreateActiveWorkspace(user.id);
+      workspaceName = workspace.name;
+    } catch (err) {
+      console.error("[DashboardLayout] Error auto-provisioning workspace:", err);
+    }
+  }
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans">
@@ -41,21 +51,12 @@ export default async function DashboardLayout({
         
         <div className="p-4">
           <button className="flex items-center justify-between w-full px-3 py-2 text-sm bg-muted border border-border/50 rounded-lg hover:bg-muted-foreground/20 transition-colors">
-            <span className="font-medium text-foreground">Acme Corp</span>
+            <span className="font-medium text-foreground">{workspaceName}</span>
             <ChevronDown className="w-4 h-4 text-muted-foreground" />
           </button>
         </div>
         
-        <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
-          <SidebarItem href="/dashboard" icon={<LayoutDashboard size={18} />} label="Dashboard" active />
-          <SidebarItem href="/dashboard/inbox" icon={<Inbox size={18} />} label="Inbox" badge="12" />
-          <SidebarItem href="/dashboard/leads" icon={<Users size={18} />} label="Leads" />
-          <SidebarItem href="/dashboard/knowledge" icon={<BookOpen size={18} />} label="Knowledge Base" />
-          <SidebarItem href="/dashboard/ai-agent" icon={<Bot size={18} />} label="AI Agent" />
-          <SidebarItem href="/dashboard/automations" icon={<Workflow size={18} />} label="Automations" />
-          <SidebarItem href="/dashboard/analytics" icon={<BarChart3 size={18} />} label="Analytics" />
-          <SidebarItem href="/dashboard/settings" icon={<Settings size={18} />} label="Settings" />
-        </nav>
+        <SidebarNav />
         
         <div className="p-4 border-t border-border/50">
           <div className="flex items-center gap-3 bg-muted p-3 rounded-xl border border-border/50">
@@ -113,18 +114,4 @@ export default async function DashboardLayout({
   );
 }
 
-function SidebarItem({ href, icon, label, badge, active }: { href: string; icon: React.ReactNode; label: string; badge?: string; active?: boolean }) {
-  return (
-    <Link href={href} className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-all ${active ? 'bg-primary/20 text-primary shadow-[0_2px_10px_rgba(209,188,255,0.1)]' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>
-      <div className="flex items-center gap-3">
-        {icon}
-        <span className="font-medium text-sm">{label}</span>
-      </div>
-      {badge && (
-        <span className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_8px_rgba(209,188,255,0.5)]">
-          {badge}
-        </span>
-      )}
-    </Link>
-  );
-}
+
