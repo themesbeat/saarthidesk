@@ -19,6 +19,7 @@ model User {
   sessions      Session[]
   accounts      Account[]
   workspaces    WorkspaceMember[]
+  conversations Conversation[] @relation("AgentConversations")
 }
 
 model Workspace {
@@ -36,6 +37,8 @@ model Workspace {
   waitlist      WaitlistEntry[]
   campaigns     Campaign[]
   bookingRule   BookingRule?
+  contacts      Contact[]
+  channels      Channel[]
 }
 
 model WorkspaceMember {
@@ -50,40 +53,69 @@ model WorkspaceMember {
 }
 
 model Conversation {
-  id          String   @id @default(uuid())
-  workspaceId String
-  platform    String   // WHATSAPP, INSTAGRAM, EMAIL, WEB
-  status      String   @default("OPEN") // OPEN, RESOLVED, ARCHIVED
-  contactId   String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id              String   @id @default(uuid())
+  workspaceId     String
+  platform        String   // WHATSAPP, INSTAGRAM, EMAIL, WEB
+  status          String   @default("OPEN") // OPEN, RESOLVED, ARCHIVED
+  contactId       String
+  assignedAgentId String?
+  priority        String   @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  aiEnabled       Boolean  @default(true)
+  lastMessageAt   DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
   
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  contact     Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  messages    Message[]
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contact         Contact   @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  assignedAgent   User?     @relation("AgentConversations", fields: [assignedAgentId], references: [id])
+  messages        Message[]
 }
 
 model Contact {
-  id          String   @id @default(uuid())
-  name        String?
-  phone       String?
-  email       String?
-  avatar      String?
-  createdAt   DateTime @default(now())
+  id            String   @id @default(uuid())
+  workspaceId   String?
+  name          String?
+  phone         String?
+  email         String?
+  avatar        String?
+  tags          String[] @default([])
+  customFields  Json     @default("{}")
+  createdAt     DateTime @default(now())
   
+  workspace     Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   conversations Conversation[]
   lead          Lead?
 }
 
 model Message {
-  id             String   @id @default(uuid())
-  conversationId String
-  content        String
-  sender         String   // USER, CUSTOMER, AI
-  isAiGenerated  Boolean  @default(false)
-  createdAt      DateTime @default(now())
+  id                String   @id @default(uuid())
+  conversationId    String
+  sender            String   // USER, CUSTOMER, AI
+  senderId          String?  // Links to User or Contact id
+  messageType       String   @default("TEXT") // TEXT, MEDIA, INTERNAL_NOTE
+  content           String
+  attachments       Json     @default("[]") // e.g. [{type: "image", url: "..."}]
+  metadata          Json     @default("{}") // for custom tracking data
+  externalMessageId String?
+  isAiGenerated     Boolean  @default(false)
+  createdAt         DateTime @default(now())
   
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversation      Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([externalMessageId])
+}
+
+model Channel {
+  id           String    @id @default(uuid())
+  workspaceId  String
+  type         String    // WHATSAPP, TELEGRAM, EMAIL, INSTAGRAM, WEB
+  credentials  Json      // Config settings/secrets/keys
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
 model Lead {
