@@ -140,7 +140,7 @@ export function Header() {
           </div>
 
           <Link href="#pricing" className="hover:text-foreground transition-colors py-4">Pricing</Link>
-          <Link href="#demo" className="hover:text-foreground transition-colors py-4">Demo</Link>
+          <Link href="/demo" className="hover:text-foreground transition-colors py-4">Demo</Link>
         </nav>
         <div className="flex items-center gap-4">
           {!isPending && (

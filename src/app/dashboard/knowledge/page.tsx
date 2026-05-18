@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { FileText, UploadCloud, Link as LinkIcon, Trash2, Search, Book, CheckCircle2, Loader2, Check } from "lucide-react";
+import { FileText, UploadCloud, Link as LinkIcon, Trash2, Search, Book, CheckCircle2, Loader2, Check, X, File } from "lucide-react";
 
 interface DatabaseArticle {
   id: string;
@@ -21,6 +21,7 @@ export default function KnowledgeBasePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isCrawling, setIsCrawling] = useState(false);
 
   // URL input fields
   const [urlTitle, setUrlTitle] = useState("");
@@ -29,6 +30,12 @@ export default function KnowledgeBasePage() {
   // Text input fields
   const [textTitle, setTextTitle] = useState("");
   const [textContent, setTextContent] = useState("");
+
+  // File Upload fields
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const fetchArticles = async () => {
     try {
@@ -84,6 +91,7 @@ export default function KnowledgeBasePage() {
       return;
     }
     const finalTitle = urlTitle || `Website URL: ${urlInput}`;
+    setIsCrawling(true);
 
     try {
       const res = await fetch("/api/knowledge", {
@@ -91,43 +99,90 @@ export default function KnowledgeBasePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: finalTitle,
-          content: `Imported static crawl index from target URL website at ${urlInput}. Fully optimized for pgvector semantic search retrieval in prompt contexts.`,
+          content: urlInput, // Pass the URL to scrape
           type: "URL"
         }),
       });
 
       if (res.ok) {
-        setToastMessage(`Successfully indexed URL content for "${finalTitle}"!`);
+        const data = await res.json();
+        const articleTitle = data.article?.title || finalTitle;
+        setToastMessage(`Successfully crawled and trained AI Agent on "${articleTitle}" website contents!`);
         setUrlTitle("");
         setUrlInput("");
         await fetchArticles();
+      } else {
+        const data = await res.json();
+        setToastMessage(`Error: ${data.error || "Failed to crawl target website."}`);
       }
-    } catch (err) {
-      console.error("Failed to save URL source:", err);
+    } catch (err: any) {
+      console.error("Failed to crawl URL source:", err);
+      setToastMessage(`Failed to crawl website: ${err.message || err}`);
+    } finally {
+      setIsCrawling(false);
     }
   };
 
-  const handleMockFileUpload = async () => {
-    const fileName = prompt("Enter a mock file name to upload (e.g. Sales_Deck_2026.docx):");
-    if (!fileName) return;
+  // Drag & Drop File Upload Handlers
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      setSelectedFile(file);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileUpload = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!selectedFile) return;
+
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", selectedFile);
 
     try {
-      const res = await fetch("/api/knowledge", {
+      const res = await fetch("/api/knowledge/upload", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: fileName,
-          content: `Trained raw document chunks from uploaded document file "${fileName}". Text parsed successfully, embedded with high-density vector tokens.`,
-          type: "PDF_TEXT"
-        }),
+        body: formData,
       });
 
       if (res.ok) {
-        setToastMessage(`Uploaded and trained file "${fileName}" in database!`);
+        setToastMessage(`Successfully uploaded and trained AI Agent on "${selectedFile.name}" file contents!`);
+        setSelectedFile(null);
+        if (fileInputRef.current) fileInputRef.current.value = "";
         await fetchArticles();
+      } else {
+        const data = await res.json();
+        setToastMessage(`Error: ${data.error || "Failed to parse document."}`);
       }
-    } catch (err) {
-      console.error("Failed mock file upload:", err);
+    } catch (err: any) {
+      console.error("Failed uploading file:", err);
+      setToastMessage(`Upload failed: ${err.message || err}`);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -179,7 +234,7 @@ export default function KnowledgeBasePage() {
           <p className="text-muted-foreground mt-0.5 text-sm">Train your AI Agent by uploading documents, indexing URLs, and writing Q&As into PostgreSQL.</p>
         </div>
         <Button 
-          onClick={handleMockFileUpload}
+          onClick={triggerFileInput}
           className="bg-primary hover:bg-primary/80 text-foreground gap-2 shadow-[0_0_15px_rgba(209,188,255,0.3)] shrink-0"
         >
           <UploadCloud className="w-4 h-4" /> Upload Document
@@ -300,16 +355,74 @@ export default function KnowledgeBasePage() {
                 
                 {/* File Upload Trigger */}
                 <TabsContent value="file" className="mt-4">
-                  <div 
-                    onClick={handleMockFileUpload}
-                    className="border-2 border-dashed border-primary/30 rounded-xl p-6 flex flex-col items-center justify-center text-center hover:bg-primary/5 hover:border-primary/50 transition-all cursor-pointer group/upload"
-                  >
-                    <div className="w-12 h-12 bg-background border border-border/40 shadow-sm rounded-full flex items-center justify-center mb-3 group-hover/upload:scale-105 transition-transform duration-300">
-                      <UploadCloud className="w-6 h-6 text-primary" />
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    accept=".pdf,.docx,.txt,.md,.csv,.json"
+                    className="hidden"
+                    id="file-upload-input"
+                  />
+                  
+                  {isUploading ? (
+                    <div className="border-2 border-dashed border-primary/30 rounded-xl p-6 flex flex-col items-center justify-center text-center bg-primary/5 min-h-[140px]">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
+                      <p className="text-xs font-semibold text-foreground">Extracting document text...</p>
+                      <p className="text-[9px] text-muted-foreground mt-1">AI Receptionist is learning file contents</p>
                     </div>
-                    <p className="text-xs font-semibold text-foreground mb-0.5">Click to browse or drop files</p>
-                    <p className="text-[9px] text-muted-foreground">PDF, DOCX, TXT (Max 10MB)</p>
-                  </div>
+                  ) : selectedFile ? (
+                    <div className="border border-border/40 bg-background/50 rounded-xl p-4 flex flex-col gap-3 min-h-[140px]">
+                      <div className="flex items-start gap-3 min-w-0">
+                        <div className="w-9 h-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                          <File className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-foreground truncate">{selectedFile.name}</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">{(selectedFile.size / 1024).toFixed(1)} KB</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedFile(null);
+                            if (fileInputRef.current) fileInputRef.current.value = "";
+                          }}
+                          className="text-muted-foreground hover:text-foreground h-7 w-7 rounded-lg shrink-0"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <div className="flex gap-2 mt-auto">
+                        <Button
+                          type="button"
+                          onClick={() => handleFileUpload()}
+                          className="flex-1 bg-primary hover:bg-primary/90 text-foreground text-xs h-8 font-bold"
+                        >
+                          Train Agent on File
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div 
+                      onDragEnter={handleDrag}
+                      onDragOver={handleDrag}
+                      onDragLeave={handleDrag}
+                      onDrop={handleDrop}
+                      onClick={triggerFileInput}
+                      className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center transition-all cursor-pointer group/upload min-h-[140px] ${
+                        dragActive 
+                          ? "border-primary bg-primary/10" 
+                          : "border-primary/30 hover:bg-primary/5 hover:border-primary/50"
+                      }`}
+                    >
+                      <div className="w-12 h-12 bg-background border border-border/40 shadow-sm rounded-full flex items-center justify-center mb-3 group-hover/upload:scale-105 transition-transform duration-300">
+                        <UploadCloud className="w-6 h-6 text-primary" />
+                      </div>
+                      <p className="text-xs font-semibold text-foreground mb-0.5">Click to browse or drop files</p>
+                      <p className="text-[9px] text-muted-foreground">PDF, DOCX, TXT, MD, CSV, JSON</p>
+                    </div>
+                  )}
                 </TabsContent>
 
                 {/* URL Web Crawler Form */}
@@ -336,9 +449,17 @@ export default function KnowledgeBasePage() {
                     </div>
                     <Button 
                       type="submit"
-                      className="w-full bg-primary hover:bg-primary/95 text-foreground shadow-sm text-xs h-8 font-bold"
+                      disabled={isCrawling}
+                      className="w-full bg-primary hover:bg-primary/95 text-foreground shadow-sm text-xs h-8 font-bold flex items-center justify-center gap-1.5"
                     >
-                      Fetch & Crawl Link
+                      {isCrawling ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          Crawling & Training AI Agent...
+                        </>
+                      ) : (
+                        "Fetch & Crawl Link"
+                      )}
                     </Button>
                   </form>
                 </TabsContent>

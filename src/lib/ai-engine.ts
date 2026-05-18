@@ -1,5 +1,11 @@
 import prisma from "@/lib/prisma";
 
+const STOP_WORDS = new Set([
+  "the", "a", "an", "and", "or", "but", "is", "are", "was", "were", "of", "to", "in", "for", "with", "on", "at", "by", 
+  "this", "that", "these", "those", "how", "much", "what", "who", "whom", "which", "where", "why", "can", "will", 
+  "would", "should", "could", "our", "your", "them", "they", "their", "here", "there", "when", "about", "been", "have", "has", "had"
+]);
+
 interface ChatMessage {
   sender: string;
   content: string;
@@ -38,23 +44,38 @@ export async function generateAiReply(
     });
 
     // 3. Keyword Context Retrieval (Semantic/Keyword matcher)
-    const queryWords = userMessage.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+    const cleanQuery = userMessage.toLowerCase().replace(/[^\w\s]/g, " ");
+    const queryWords = cleanQuery.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
     let bestArticle = null;
     let maxMatchCount = 0;
 
-    for (const article of knowledgeBase) {
-      let matches = 0;
-      const titleLower = article.title.toLowerCase();
-      const contentLower = article.content.toLowerCase();
+    if (queryWords.length > 0) {
+      for (const article of knowledgeBase) {
+        let matches = 0;
+        const titleClean = article.title.toLowerCase().replace(/[^\w\s]/g, " ");
+        const contentClean = article.content.toLowerCase().replace(/[^\w\s]/g, " ");
+        
+        const titleTokens = titleClean.split(/\s+/);
+        const contentTokens = contentClean.split(/\s+/);
 
-      for (const word of queryWords) {
-        if (titleLower.includes(word)) matches += 3; // Title matches count more
-        if (contentLower.includes(word)) matches += 1;
-      }
+        for (const word of queryWords) {
+          if (titleTokens.includes(word)) {
+            matches += 8; // Exact word match in Title
+          } else if (titleClean.includes(word)) {
+            matches += 3; // Partial word match in Title
+          }
 
-      if (matches > maxMatchCount) {
-        maxMatchCount = matches;
-        bestArticle = article;
+          if (contentTokens.includes(word)) {
+            matches += 4; // Exact word match in Content
+          } else if (contentClean.includes(word)) {
+            matches += 1; // Partial word match in Content
+          }
+        }
+
+        if (matches > maxMatchCount) {
+          maxMatchCount = matches;
+          bestArticle = article;
+        }
       }
     }
 
@@ -97,20 +118,33 @@ export async function generateAiReply(
       confidence = Math.min(98, 85 + maxMatchCount * 2);
       source = `${bestArticle.title} (${bestArticle.type})`;
       
-      // Extract the key statement or summary
-      const contentLines = bestArticle.content.split(/[.!\n]+/).filter(l => l.trim().length > 0);
-      const relevantSnippet = contentLines[0] || bestArticle.content;
-      
-      baseResponse = `According to our records for "${bestArticle.title}": ${relevantSnippet}. If you need more details: ${bestArticle.content.substring(0, 160)}${bestArticle.content.length > 160 ? "..." : ""}`;
+      const cleanContent = bestArticle.content.trim();
+      if (cleanContent.length <= 220) {
+        baseResponse = `According to our records for "${bestArticle.title}": ${cleanContent}`;
+      } else {
+        const sentences = cleanContent.split(/(?<=[.!?])\s+/).filter(l => l.trim().length > 0);
+        const snippet = sentences.slice(0, 2).join(" ");
+        baseResponse = `According to our records for "${bestArticle.title}": ${snippet}...`;
+      }
     } else {
       // Default persona-driven replies if no direct knowledge match
-      if (userMessage.toLowerCase().includes("pricing") || userMessage.toLowerCase().includes("price") || userMessage.toLowerCase().includes("cost")) {
-        baseResponse = "Our pricing plans start at $19/month for Starter and $49/month for Business features, including 24/7 receptionist automations, analytics, and CRM integrations.";
+      const lowerMsg = userMessage.toLowerCase();
+      if (
+        lowerMsg.includes("pricing") || 
+        lowerMsg.includes("price") || 
+        lowerMsg.includes("cost") || 
+        lowerMsg.includes("how much") || 
+        lowerMsg.includes("plan") || 
+        lowerMsg.includes("billing") || 
+        lowerMsg.includes("subscription") ||
+        lowerMsg.includes("enterprise")
+      ) {
+        baseResponse = "Our pricing plans start at $19/month for Starter and $49/month for Business features, including 24/7 receptionist automations, analytics, and CRM integrations. If you are interested in custom Enterprise limits, please let us know!";
         source = "Pricing_Guide";
-      } else if (userMessage.toLowerCase().includes("hours") || userMessage.toLowerCase().includes("open") || userMessage.toLowerCase().includes("time")) {
+      } else if (lowerMsg.includes("hours") || lowerMsg.includes("open") || lowerMsg.includes("time")) {
         baseResponse = "We are open Monday through Saturday, from 9:00 AM to 8:00 PM. We are closed on Sundays.";
         source = "Business_Hours";
-      } else if (userMessage.toLowerCase().includes("book") || userMessage.toLowerCase().includes("appointment") || userMessage.toLowerCase().includes("schedule")) {
+      } else if (lowerMsg.includes("book") || lowerMsg.includes("appointment") || lowerMsg.includes("schedule")) {
         baseResponse = "We would love to schedule a session for you! Please share your preferred date and time, and I will check slot availability for you immediately.";
         source = "Appointment_Scheduler";
       } else {
