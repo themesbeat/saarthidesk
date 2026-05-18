@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     } else {
       // Update existing contact details
       const existingFields = typeof contact.customFields === 'object' && contact.customFields !== null
-        ? (contact.customFields as Record<string, any>)
+        ? (contact.customFields as Record<string, unknown>)
         : {};
 
       contact = await prisma.contact.update({

@@ -37,9 +37,9 @@ export async function POST(request: Request) {
         // unpdf uses Wasm-based pdfjs internally — fully Node.js compatible, no DOMMatrix needed
         const { text } = await extractText(new Uint8Array(bytes), { mergePages: true });
         extractedText = text || "";
-      } catch (err: any) {
+      } catch (err) {
         console.error("[UploadPDF] Error parsing PDF:", err);
-        return NextResponse.json({ error: `Failed to parse PDF document: ${err.message || err}` }, { status: 400 });
+        return NextResponse.json({ error: `Failed to parse PDF document: ${err instanceof Error ? err.message : String(err)}` }, { status: 400 });
       }
     } else if (extension === "docx") {
       type = "PDF_TEXT"; // Map DOCX text extraction to the same category as PDF_TEXT for DB consistency
@@ -48,17 +48,17 @@ export async function POST(request: Request) {
         const buffer = Buffer.from(bytes);
         const mammothResult = await mammoth.extractRawText({ buffer });
         extractedText = mammothResult.value || "";
-      } catch (err: any) {
+      } catch (err) {
         console.error("[UploadDOCX] Error parsing Word document:", err);
-        return NextResponse.json({ error: `Failed to parse Word document: ${err.message || err}` }, { status: 400 });
+        return NextResponse.json({ error: `Failed to parse Word document: ${err instanceof Error ? err.message : String(err)}` }, { status: 400 });
       }
     } else if (["txt", "md", "csv", "json"].includes(extension || "")) {
       type = "TEXT";
       try {
         extractedText = await file.text();
-      } catch (err: any) {
+      } catch (err) {
         console.error("[UploadText] Error reading text file:", err);
-        return NextResponse.json({ error: `Failed to read text file contents: ${err.message || err}` }, { status: 400 });
+        return NextResponse.json({ error: `Failed to read text file contents: ${err instanceof Error ? err.message : String(err)}` }, { status: 400 });
       }
     } else {
       return NextResponse.json({
@@ -91,8 +91,8 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, article });
-  } catch (err: any) {
+  } catch (err) {
     console.error("[KnowledgeUploadPOST] Error:", err);
-    return NextResponse.json({ error: `Internal Server Error: ${err.message || err}` }, { status: 500 });
+    return NextResponse.json({ error: `Internal Server Error: ${err instanceof Error ? err.message : String(err)}` }, { status: 500 });
   }
 }

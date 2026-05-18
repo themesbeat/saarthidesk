@@ -115,9 +115,9 @@ export default function KnowledgeBasePage() {
         const data = await res.json();
         setToastMessage(`Error: ${data.error || "Failed to crawl target website."}`);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed to crawl URL source:", err);
-      setToastMessage(`Failed to crawl website: ${err.message || err}`);
+      setToastMessage(`Failed to crawl website: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsCrawling(false);
     }
@@ -178,9 +178,9 @@ export default function KnowledgeBasePage() {
         const data = await res.json();
         setToastMessage(`Error: ${data.error || "Failed to parse document."}`);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Failed uploading file:", err);
-      setToastMessage(`Upload failed: ${err.message || err}`);
+      setToastMessage(`Upload failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setIsUploading(false);
     }

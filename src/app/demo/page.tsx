@@ -94,8 +94,8 @@ export default function BookDemoPage() {
       }
 
       setIsSubmitted(true);
-    } catch (err: any) {
-      setSubmitError(err.message || "An error occurred while scheduling.");
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "An error occurred while scheduling.");
     } finally {
       setIsSubmitting(false);
     }

@@ -138,9 +138,11 @@ export async function POST(request: Request) {
 
         finalContent = cleanText;
 
-      } catch (err: any) {
+      } catch (err) {
         console.error("[KnowledgeCrawler] Fetch error:", err);
-        const errMsg = err.name === "AbortError" ? "Request timed out after 12 seconds." : (err.message || err.toString());
+        const errMsg = err instanceof Error
+          ? (err.name === "AbortError" ? "Request timed out after 12 seconds." : err.message)
+          : String(err);
         return NextResponse.json({ error: `Connection failed: ${errMsg}` }, { status: 400 });
       }
     }
