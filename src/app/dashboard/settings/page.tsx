@@ -171,7 +171,7 @@ export default function SettingsPage() {
                       <button
                         type="button"
                         key={role.id}
-                        onClick={() => setInviteRole(role.id as any)}
+                        onClick={() => setInviteRole(role.id as Teammate["role"])}
                         className={`p-2.5 rounded-lg border text-center transition-all flex flex-col items-center justify-center ${
                           inviteRole === role.id 
                             ? "bg-primary/20 border-primary text-primary" 

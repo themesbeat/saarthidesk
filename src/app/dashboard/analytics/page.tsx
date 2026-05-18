@@ -57,7 +57,7 @@ export default function AnalyticsPage() {
             ].map((opt) => (
               <button
                 key={opt.id}
-                onClick={() => setTimeRange(opt.id as any)}
+                onClick={() => setTimeRange(opt.id as "7d" | "30d" | "24h")}
                 className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
                   timeRange === opt.id 
                     ? "bg-primary/20 text-primary" 

@@ -39,7 +39,7 @@ export default function HelpCenterPage() {
       const res = await fetch("/api/knowledge");
       const data = await res.json();
       if (data.articles) {
-        const mapped = data.articles.map((a: any, idx: number) => {
+        const mapped = data.articles.map((a: { id: string; title: string; content: string }, idx: number) => {
           let category = "General Support";
           if (a.title.toLowerCase().includes("whatsapp")) {
             category = "WhatsApp Integration";

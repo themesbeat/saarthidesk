@@ -220,5 +220,96 @@ export async function getOrCreateActiveWorkspace(userId: string): Promise<Worksp
     });
   }
 
+  // 4. Auto-Seed Confirmed Appointments
+  const seedAppointments = [
+    {
+      time: "10:00 AM - 10:45 AM",
+      staff: "Dr. Sarah Miller",
+      client: "Ananya Sen",
+      type: "Patient Intake Session",
+      status: "CONFIRMED"
+    },
+    {
+      time: "01:30 PM - 02:00 PM",
+      staff: "Rohan Sen",
+      client: "John Doe",
+      type: "General Health Consultation",
+      status: "CONFIRMED"
+    },
+    {
+      time: "04:00 PM - 04:30 PM",
+      staff: "AI Assistant Roster",
+      client: "Pranav Rao",
+      type: "AI Reception Setup Review",
+      status: "CONFIRMED"
+    }
+  ];
+
+  for (const app of seedAppointments) {
+    await prisma.appointment.create({
+      data: {
+        workspaceId,
+        time: app.time,
+        staff: app.staff,
+        client: app.client,
+        type: app.type,
+        status: app.status
+      }
+    });
+  }
+
+  // 5. Auto-Seed Waitlist Candidates
+  const seedWaitlist = [
+    { name: "Vikram Malhotra", phone: "+91 98765 43210", service: "Premium AI Setup Review", priority: "HIGH" },
+    { name: "Amelie Dubois", phone: "+33 6 1234 5678", service: "Automated Consultation", priority: "MEDIUM" },
+    { name: "Caleb Vance", phone: "+1 (555) 019-2834", service: "Enterprise Strategy Desk", priority: "LOW" }
+  ];
+
+  for (const wl of seedWaitlist) {
+    await prisma.waitlistEntry.create({
+      data: {
+        workspaceId,
+        name: wl.name,
+        phone: wl.phone,
+        service: wl.service,
+        priority: wl.priority
+      }
+    });
+  }
+
+  // 6. Auto-Seed Booking Rule Configuration
+  await prisma.bookingRule.create({
+    data: {
+      workspaceId,
+      bufferTime: 15,
+      cancelWindow: 24,
+      reminder24h: true,
+      reminder1h: true
+    }
+  });
+
+  // 7. Auto-Seed Broadcast Campaigns
+  const seedCampaigns = [
+    { name: "Holi Special Discount Offer", channel: "WhatsApp", sent: 4800, delivered: 4792, openRate: 94.2, replies: 342, status: "Completed" },
+    { name: "Shopify Abandoned Cart Recovery", channel: "WhatsApp", sent: 1240, delivered: 1228, openRate: 88.5, replies: 198, status: "In Progress" },
+    { name: "Monthly Product Newsletter", channel: "Email", sent: 8500, delivered: 8320, openRate: 32.4, replies: 48, status: "Completed" },
+    { name: "SMS Appointment Booking Nudge", channel: "SMS", sent: 280, delivered: 280, openRate: 98.0, replies: 12, status: "Completed" }
+  ];
+
+  for (const camp of seedCampaigns) {
+    await prisma.campaign.create({
+      data: {
+        workspaceId,
+        name: camp.name,
+        channel: camp.channel,
+        sent: camp.sent,
+        delivered: camp.delivered,
+        openRate: camp.openRate,
+        replies: camp.replies,
+        status: camp.status
+      }
+    });
+  }
+
   return newWorkspace;
 }

@@ -32,6 +32,10 @@ model Workspace {
   leads         Lead[]
   knowledge     KnowledgeBase[]
   aiSettings    AiSettings?
+  appointments  Appointment[]
+  waitlist      WaitlistEntry[]
+  campaigns     Campaign[]
+  bookingRule   BookingRule?
 }
 
 model WorkspaceMember {
@@ -156,4 +160,55 @@ model Verification {
   expiresAt  DateTime
   createdAt  DateTime
   updatedAt  DateTime
+}
+
+model Appointment {
+  id          String   @id @default(uuid())
+  workspaceId String
+  time        String   // e.g. "10:00 AM - 10:45 AM"
+  staff       String   // e.g. "Dr. Sarah Miller"
+  client      String   // e.g. "Ananya Sen"
+  type        String   // e.g. "Patient Intake Session"
+  status      String   @default("CONFIRMED") // CONFIRMED, COMPLETED, CANCELLED
+  createdAt   DateTime @default(now())
+  
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model WaitlistEntry {
+  id          String   @id @default(uuid())
+  workspaceId String
+  name        String
+  phone       String
+  service     String
+  priority    String   @default("MEDIUM") // HIGH, MEDIUM, LOW
+  createdAt   DateTime @default(now())
+  
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model Campaign {
+  id          String   @id @default(uuid())
+  workspaceId String
+  name        String
+  channel     String   // WhatsApp, SMS, Email, Telegram
+  sent        Int      @default(0)
+  delivered   Int      @default(0)
+  openRate    Float    @default(0.0)
+  replies     Int      @default(0)
+  status      String   @default("DRAFT") // Completed, In Progress, Draft
+  createdAt   DateTime @default(now())
+  
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model BookingRule {
+  id            String   @id @default(uuid())
+  workspaceId   String   @unique
+  bufferTime    Int      @default(15)
+  cancelWindow  Int      @default(24)
+  reminder24h   Boolean  @default(true)
+  reminder1h    Boolean  @default(true)
+  
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }

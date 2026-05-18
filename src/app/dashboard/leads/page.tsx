@@ -69,7 +69,7 @@ export default function LeadsPage() {
       "CONVERTED",
       "CLOSED"
     ];
-    const currentIndex = stages.indexOf(currentStage as any);
+    const currentIndex = stages.indexOf(currentStage as Lead["stage"]);
     const nextIndex = (currentIndex + 1) % stages.length;
     const targetStage = stages[nextIndex];
 
@@ -317,7 +317,7 @@ export default function LeadsPage() {
                   <label className="text-[10px] font-bold text-muted-foreground uppercase">Initial Funnel Stage</label>
                   <select 
                     value={newLeadStage}
-                    onChange={(e) => setNewLeadStage(e.target.value as any)}
+                    onChange={(e) => setNewLeadStage(e.target.value as Lead["stage"])}
                     className="w-full bg-background border border-border/40 rounded-md px-2 text-xs h-8 focus:ring-1 focus:ring-primary outline-none"
                   >
                     <option value="NEW">New Lead</option>

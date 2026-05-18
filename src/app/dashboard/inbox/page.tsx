@@ -26,8 +26,38 @@ import {
   HelpCircle
 } from "lucide-react";
 
+interface Message {
+  id: string;
+  sender: "USER" | "CUSTOMER" | "AI";
+  content: string;
+  createdAt: string | Date;
+  isAiGenerated?: boolean;
+}
+
+interface Lead {
+  id: string;
+  stage: "NEW" | "INTERESTED" | "FOLLOW_UP" | "CONVERTED" | "CLOSED";
+  value: number;
+  notes: string;
+}
+
+interface Contact {
+  id: string;
+  name: string;
+  email: string | null;
+  lead?: Lead | null;
+}
+
+interface Conversation {
+  id: string;
+  channel: "WHATSAPP" | "TELEGRAM" | "EMAIL" | "SMS" | "WEB";
+  status: "OPEN" | "CLOSED";
+  contact: Contact;
+  messages: Message[];
+}
+
 export default function InboxPage() {
-  const [conversations, setConversations] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -163,7 +193,7 @@ export default function InboxPage() {
       return matchesSearch && c.status === "OPEN";
     }
     if (filterTab === "ai") {
-      return matchesSearch && c.messages.some((m: any) => m.isAiGenerated);
+      return matchesSearch && c.messages.some((m: Message) => m.isAiGenerated);
     }
     return matchesSearch;
   });
@@ -267,7 +297,7 @@ export default function InboxPage() {
                             {c.contact.lead.stage}
                           </Badge>
                         )}
-                        {c.messages.some((m: any) => m.isAiGenerated) && (
+                        {c.messages.some((m: Message) => m.isAiGenerated) && (
                           <Badge variant="outline" className="text-[9px] bg-indigo-500/10 text-indigo-300 border-indigo-500/20 px-1.5 py-0 flex items-center gap-0.5">
                             <Bot className="w-2.5 h-2.5" /> AI active
                           </Badge>
@@ -333,7 +363,7 @@ export default function InboxPage() {
                   </Badge>
                 </div>
 
-                {activeConversation.messages.map((message: any) => {
+                {activeConversation.messages.map((message: Message) => {
                   const isAgent = message.sender === "USER";
                   const isAI = message.sender === "AI";
                   const initials = activeConversation.contact.name

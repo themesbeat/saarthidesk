@@ -69,7 +69,7 @@ export default function AIAgentConfigPage() {
           if (s.tone) {
             const mappedTone = s.tone.toLowerCase();
             if (["professional", "casual", "empathetic", "enthusiastic"].includes(mappedTone)) {
-              setSelectedTone(mappedTone as any);
+              setSelectedTone(mappedTone as "professional" | "casual" | "empathetic" | "enthusiastic");
             }
           }
           

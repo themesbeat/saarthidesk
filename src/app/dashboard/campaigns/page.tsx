@@ -1,40 +1,71 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Megaphone, Send, Mail, MessageSquare, Plus, 
   Sparkles, CheckCircle2, AlertCircle, BarChart3, Filter,
-  HelpCircle, Clock, Zap
+  HelpCircle, Clock, Zap, X
 } from "lucide-react";
 
 interface CampaignLog {
   id: string;
   name: string;
-  channel: "WhatsApp" | "SMS" | "Email" | "Telegram";
+  channel: string;
   sent: number;
   delivered: number;
   openRate: number;
   replies: number;
-  status: "Completed" | "In Progress" | "Draft";
+  status: string;
 }
 
 export default function CampaignsPage() {
   const [activeSegment, setActiveSegment] = useState<string>("All Leads");
   const [selectedChannel, setSelectedChannel] = useState<string>("WhatsApp");
+  const [campaignName, setCampaignName] = useState<string>("");
   const [broadcastText, setBroadcastText] = useState<string>("Hi {{name}}, we noticed you left some items in your cart! Use code SAARTHI10 for 10% off.");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isLaunching, setIsLaunching] = useState<boolean>(false);
   const [progressPercent, setProgressPercent] = useState<number>(0);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  const [campaigns, setCampaigns] = useState<CampaignLog[]>([
-    { id: "1", name: "Holi Special Discount Offer", channel: "WhatsApp", sent: 4800, delivered: 4792, openRate: 94.2, replies: 342, status: "Completed" },
-    { id: "2", name: "Shopify Abandoned Cart Recovery", channel: "WhatsApp", sent: 1240, delivered: 1228, openRate: 88.5, replies: 198, status: "In Progress" },
-    { id: "3", name: "Monthly Product Newsletter", channel: "Email", sent: 8500, delivered: 8320, openRate: 32.4, replies: 48, status: "Completed" },
-    { id: "4", name: "SMS Appointment Booking Nudge", channel: "SMS", sent: 280, delivered: 280, openRate: 98.0, replies: 12, status: "Completed" }
-  ]);
+  // Dynamic campaign data from PostgreSQL
+  const [campaigns, setCampaigns] = useState<CampaignLog[]>([]);
+  const [stats, setStats] = useState({
+    totalBroadcasted: 0,
+    avgOpenRate: 82.4,
+    clickThroughRate: 18.5,
+    totalReplies: 0
+  });
 
-  const launchBroadcast = (e: React.FormEvent) => {
+  const fetchCampaignData = async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch("/api/campaigns");
+      const data = await res.json();
+      if (data.success) {
+        setCampaigns(data.campaigns);
+        if (data.stats) {
+          setStats(data.stats);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching campaign data:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCampaignData();
+  }, []);
+
+  const triggerToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 4500);
+  };
+
+  const launchBroadcast = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!broadcastText.trim()) return;
 
@@ -46,26 +77,46 @@ export default function CampaignsPage() {
       setProgressPercent((prev) => {
         if (prev >= 100) {
           clearInterval(interval);
-          setIsLaunching(false);
-          setToastMessage(`Campaign "${selectedChannel} Blast - ${activeSegment}" successfully launched to 420 contacts!`);
-          
-          // Add to log
-          const newCamp: CampaignLog = {
-            id: String(campaigns.length + 1),
-            name: `${selectedChannel} Blast - ${activeSegment}`,
-            channel: selectedChannel as any,
-            sent: 420,
-            delivered: 418,
-            openRate: 0,
-            replies: 0,
-            status: "Completed"
-          };
-          setCampaigns([newCamp, ...campaigns]);
-          return 0;
+          return 100;
         }
         return prev + 30;
       });
-    }, 800);
+    }, 400);
+
+    const finalCampaignName = campaignName.trim() || `${selectedChannel} Blast - ${activeSegment}`;
+    const mockSentCount = Math.floor(200 + Math.random() * 800);
+    const mockOpenRate = selectedChannel === "WhatsApp" ? parseFloat((85 + Math.random() * 10).toFixed(1)) : parseFloat((30 + Math.random() * 10).toFixed(1));
+    const mockReplies = Math.floor(mockSentCount * (mockOpenRate / 100) * 0.15);
+
+    try {
+      const res = await fetch("/api/campaigns", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: finalCampaignName,
+          channel: selectedChannel,
+          sent: mockSentCount,
+          openRate: mockOpenRate,
+          replies: mockReplies,
+          status: "Completed"
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        // Wait a small moment to align with progress bar
+        setTimeout(() => {
+          setIsLaunching(false);
+          setProgressPercent(0);
+          setCampaignName("");
+          triggerToast(`Broadcast Campaign "${finalCampaignName}" successfully fired to ${mockSentCount} active leads!`);
+          fetchCampaignData(); // Refresh list and metrics
+        }, 1500);
+      }
+    } catch (err) {
+      console.error("Error launching campaign:", err);
+      setIsLaunching(false);
+    }
   };
 
   return (
@@ -73,23 +124,23 @@ export default function CampaignsPage() {
       
       {/* Dynamic Launch Progress & Toasts */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 max-w-md bg-popover border border-primary/20 backdrop-blur-md rounded-xl p-4 shadow-[0_10px_30px_rgba(209,188,255,0.15)] flex items-start gap-3 transition-all duration-300 animate-in fade-in slide-in-from-bottom-5">
+        <div className="fixed bottom-6 right-6 z-50 max-w-md bg-popover/90 border border-primary/20 backdrop-blur-md rounded-xl p-4 shadow-[0_10px_30px_rgba(209,188,255,0.15)] flex items-start gap-3 transition-all duration-300 animate-in fade-in slide-in-from-bottom-5">
           <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-4 h-4" />
+            <CheckCircle2 className="w-4 h-4 animate-bounce" />
           </div>
-          <div>
+          <div className="flex-1">
             <h4 className="text-sm font-semibold">Campaign Fired</h4>
-            <p className="text-xs text-muted-foreground mt-1">{toastMessage}</p>
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{toastMessage}</p>
           </div>
-          <button onClick={() => setToastMessage(null)} className="text-muted-foreground hover:text-foreground text-xs font-semibold ml-auto pl-2">×</button>
+          <button onClick={() => setToastMessage(null)} className="text-muted-foreground hover:text-foreground text-xs font-semibold shrink-0 pl-2">&times;</button>
         </div>
       )}
 
       {isLaunching && (
-        <div className="fixed bottom-6 right-6 z-50 w-80 bg-popover border border-primary/20 backdrop-blur-md rounded-xl p-4 shadow-[0_10px_30px_rgba(209,188,255,0.15)] space-y-3">
+        <div className="fixed bottom-6 right-6 z-50 w-80 bg-popover/95 border border-primary/20 backdrop-blur-md rounded-xl p-4 shadow-[0_10px_30px_rgba(209,188,255,0.15)] space-y-3">
           <div className="flex justify-between text-xs font-semibold">
             <span>Broadcasting Messages...</span>
-            <span className="font-mono text-primary">{progressPercent}%</span>
+            <span className="font-mono text-primary animate-pulse">{progressPercent}%</span>
           </div>
           <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
             <div className="h-full bg-primary transition-all duration-500 rounded-full" style={{ width: `${progressPercent}%` }}></div>
@@ -115,8 +166,10 @@ export default function CampaignsPage() {
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Total Broadcasted</h4>
             <Megaphone className="w-4 h-4 text-primary" />
           </div>
-          <div className="text-2xl font-black mt-2">14,820</div>
-          <p className="text-[10px] text-emerald-400 mt-1 flex items-center gap-0.5">
+          <div className="text-2xl font-black mt-2">
+            {isLoading ? "..." : stats.totalBroadcasted.toLocaleString()}
+          </div>
+          <p className="text-[10px] text-emerald-400 mt-1 flex items-center gap-0.5 font-medium">
             +18.4% from last quarter
           </p>
         </Card>
@@ -125,24 +178,30 @@ export default function CampaignsPage() {
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Average Open Rate</h4>
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="text-2xl font-black mt-2">82.4%</div>
-          <p className="text-[10px] text-muted-foreground mt-1">High conversion on WhatsApp DM</p>
+          <div className="text-2xl font-black mt-2">
+            {isLoading ? "..." : `${stats.avgOpenRate}%`}
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1 font-medium">High conversion on WhatsApp DM</p>
         </Card>
         <Card className="bg-card/40 border-border/40 backdrop-blur-md p-4">
           <div className="flex justify-between items-center">
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Click-Through Rate</h4>
             <Zap className="w-4 h-4 text-yellow-400" />
           </div>
-          <div className="text-2xl font-black mt-2">18.5%</div>
-          <p className="text-[10px] text-emerald-400 mt-1">Auto-link shortener enabled</p>
+          <div className="text-2xl font-black mt-2">
+            {stats.clickThroughRate}%
+          </div>
+          <p className="text-[10px] text-emerald-400 mt-1 font-medium">Auto-link shortener enabled</p>
         </Card>
         <Card className="bg-card/40 border-border/40 backdrop-blur-md p-4">
           <div className="flex justify-between items-center">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Lead Conversions</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Lead Replies</h4>
             <Sparkles className="w-4 h-4 text-pink-400" />
           </div>
-          <div className="text-2xl font-black mt-2">412 Leads</div>
-          <p className="text-[10px] text-muted-foreground mt-1">Direct sales attribution</p>
+          <div className="text-2xl font-black mt-2">
+            {isLoading ? "..." : `${stats.totalReplies} Replies`}
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1 font-medium">Direct sales attribution</p>
         </Card>
       </div>
 
@@ -156,13 +215,13 @@ export default function CampaignsPage() {
           <Card className="bg-card/45 border-border/40 backdrop-blur-md">
             <CardHeader>
               <CardTitle className="text-base font-semibold">Active Broadcast Logs</CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">Real-time status tracking for active promotional funnels</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Real-time status tracking for active promotional funnels in PostgreSQL</p>
             </CardHeader>
             <CardContent className="px-0">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-border/30 text-[10px] text-muted-foreground tracking-wider uppercase bg-muted/20">
+                    <tr className="border-b border-border/30 text-[10px] text-muted-foreground tracking-wider uppercase bg-muted/20 font-bold">
                       <th className="py-2.5 px-4">Campaign Target</th>
                       <th className="py-2.5 px-4 text-center">Channel</th>
                       <th className="py-2.5 px-4 text-right">Sent Size</th>
@@ -171,27 +230,41 @@ export default function CampaignsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/20 text-xs">
-                    {campaigns.map((c) => (
-                      <tr key={c.id} className="hover:bg-muted/10 transition-colors">
-                        <td className="py-3 px-4 font-bold text-foreground">{c.name}</td>
-                        <td className="py-3 px-4 text-center">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
-                            c.channel === 'WhatsApp' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/10' : c.channel === 'Email' ? 'bg-primary/10 text-primary border-primary/10' : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/10'
-                          }`}>
-                            {c.channel}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-right font-mono font-medium text-foreground">{c.sent}</td>
-                        <td className="py-3 px-4 text-right font-mono text-muted-foreground">{c.openRate === 0 ? '-' : `${c.openRate}%`}</td>
-                        <td className="py-3 px-4 text-center">
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                            c.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' : c.status === 'In Progress' ? 'bg-yellow-500/20 text-yellow-400 animate-pulse' : 'bg-zinc-500/20 text-zinc-400'
-                          }`}>
-                            {c.status}
-                          </span>
+                    {isLoading ? (
+                      <tr>
+                        <td colSpan={5} className="py-8 text-center text-muted-foreground">
+                          Querying live broadcast telemetry reports...
                         </td>
                       </tr>
-                    ))}
+                    ) : campaigns.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-8 text-center text-muted-foreground">
+                          No campaigns found. Launch one below!
+                        </td>
+                      </tr>
+                    ) : (
+                      campaigns.map((c) => (
+                        <tr key={c.id} className="hover:bg-muted/10 transition-colors">
+                          <td className="py-3 px-4 font-bold text-foreground">{c.name}</td>
+                          <td className="py-3 px-4 text-center">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                              c.channel === 'WhatsApp' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/10' : c.channel === 'Email' ? 'bg-primary/10 text-primary border-primary/10' : 'bg-cyan-500/10 text-cyan-400 border-cyan-500/10'
+                            }`}>
+                              {c.channel}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right font-mono font-medium text-foreground">{c.sent.toLocaleString()}</td>
+                          <td className="py-3 px-4 text-right font-mono text-muted-foreground">{c.openRate === 0 ? '-' : `${c.openRate}%`}</td>
+                          <td className="py-3 px-4 text-center">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                              c.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' : c.status === 'In Progress' ? 'bg-yellow-500/20 text-yellow-400 animate-pulse' : 'bg-zinc-500/20 text-zinc-400'
+                            }`}>
+                              {c.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -208,7 +281,7 @@ export default function CampaignsPage() {
               <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 bg-muted/20 border border-border/30 rounded-xl">
                 <div className="space-y-1">
                   <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-primary"></span> Lead Nurturing Sequence
+                    <span className="w-2 h-2 rounded-full bg-primary animate-ping"></span> Lead Nurturing Sequence
                   </h4>
                   <p className="text-[10px] text-muted-foreground">Triggered instantly on Shopify abandoned checkout webhook</p>
                 </div>
@@ -255,6 +328,18 @@ export default function CampaignsPage() {
             <CardContent>
               <form onSubmit={launchBroadcast} className="space-y-4">
                 
+                {/* Campaign Name */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Campaign Name</label>
+                  <input 
+                    type="text"
+                    placeholder="e.g. Winter Warmup Sale Blast"
+                    value={campaignName}
+                    onChange={(e) => setCampaignName(e.target.value)}
+                    className="w-full bg-muted border border-border/40 text-xs px-3 py-2 rounded-lg text-foreground focus:outline-none focus:border-primary/50"
+                  />
+                </div>
+
                 {/* Segment selection */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Target Segment</label>
