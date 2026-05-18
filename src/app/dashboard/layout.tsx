@@ -3,12 +3,12 @@ import Image from "next/image";
 import { 
   Bell, Search, ChevronDown, Activity
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import SidebarNav from "./sidebar-nav";
+import UserCard from "./user-card";
 import { getOrCreateActiveWorkspace } from "@/lib/workspace";
 
 export default async function DashboardLayout({
@@ -59,19 +59,12 @@ export default async function DashboardLayout({
         <SidebarNav />
         
         <div className="p-4 border-t border-border/50">
-          <div className="flex items-center gap-3 bg-muted p-3 rounded-xl border border-border/50">
-            <div className="relative">
-              <Avatar className="w-10 h-10 border border-border/50">
-                <AvatarImage src={user?.image || undefined} />
-                <AvatarFallback>{initials}</AvatarFallback>
-              </Avatar>
-              <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-background shadow-[0_0_8px_rgba(52,211,153,0.8)]"></div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-foreground">{user?.name || "User"}</p>
-              <p className="text-xs text-muted-foreground truncate">{user?.email || "No email"}</p>
-            </div>
-          </div>
+          <UserCard
+            name={user?.name || "User"}
+            email={user?.email || "No email"}
+            image={user?.image || undefined}
+            initials={initials}
+          />
         </div>
       </aside>
 

@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Link2, Key, Globe, Plus, Play, Sparkles, 
   CheckCircle2, AlertCircle, Copy, Check, Trash,
-  ShoppingBag, CreditCard, Layers, Slack, Terminal
+  ShoppingBag, CreditCard, Layers, Slack, Terminal, MessageSquare
 } from "lucide-react";
 
 interface ApiKey {
@@ -24,9 +24,28 @@ interface Webhook {
 }
 
 export default function IntegrationsPage() {
-  const [activeTab, setActiveTab] = useState<"apps" | "keys" | "webhooks">("apps");
+  const [activeTab, setActiveTab] = useState<"apps" | "keys" | "webhooks" | "widget">("apps");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
+  
+  // Widget Customization settings
+  const [workspaceId, setWorkspaceId] = useState<string>("");
+  const [widgetTheme, setWidgetTheme] = useState<string>("#7c3aed");
+  const [widgetAgentName, setWidgetAgentName] = useState<string>("Saarthi AI");
+
+  useEffect(() => {
+    fetch("/api/ai-settings")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.settings) {
+          setWorkspaceId(data.settings.workspaceId);
+          if (data.settings.agentName) {
+            setWidgetAgentName(data.settings.agentName);
+          }
+        }
+      })
+      .catch((err) => console.error("Error loading settings:", err));
+  }, []);
   
   // Apps Connection State
   const [appStates, setAppStates] = useState({
@@ -161,10 +180,10 @@ export default function IntegrationsPage() {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex items-center border-b border-border/40 gap-6">
+      <div className="flex items-center border-b border-border/40 gap-6 overflow-x-auto">
         <button 
           onClick={() => setActiveTab("apps")}
-          className={`pb-3 text-sm font-semibold transition-all relative ${activeTab === 'apps' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+          className={`pb-3 text-sm font-semibold transition-all relative shrink-0 ${activeTab === 'apps' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
         >
           {activeTab === 'apps' && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-primary"></span>}
           <div className="flex items-center gap-2">
@@ -173,7 +192,7 @@ export default function IntegrationsPage() {
         </button>
         <button 
           onClick={() => setActiveTab("keys")}
-          className={`pb-3 text-sm font-semibold transition-all relative ${activeTab === 'keys' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+          className={`pb-3 text-sm font-semibold transition-all relative shrink-0 ${activeTab === 'keys' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
         >
           {activeTab === 'keys' && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-primary"></span>}
           <div className="flex items-center gap-2">
@@ -182,11 +201,20 @@ export default function IntegrationsPage() {
         </button>
         <button 
           onClick={() => setActiveTab("webhooks")}
-          className={`pb-3 text-sm font-semibold transition-all relative ${activeTab === 'webhooks' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+          className={`pb-3 text-sm font-semibold transition-all relative shrink-0 ${activeTab === 'webhooks' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
         >
           {activeTab === 'webhooks' && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-primary"></span>}
           <div className="flex items-center gap-2">
             <Globe className="w-4 h-4" /> Outbound Webhooks
+          </div>
+        </button>
+        <button 
+          onClick={() => setActiveTab("widget")}
+          className={`pb-3 text-sm font-semibold transition-all relative shrink-0 ${activeTab === 'widget' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+        >
+          {activeTab === 'widget' && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-primary"></span>}
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4" /> Web Chat Widget
           </div>
         </button>
       </div>
@@ -362,22 +390,136 @@ export default function IntegrationsPage() {
             </Card>
           )}
 
+          {activeTab === "widget" && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              <Card className="bg-card/45 border-border/40 backdrop-blur-md">
+                <CardHeader>
+                  <CardTitle className="text-base font-semibold">1. Choose Theme & Branding</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">Customize your widget's appearance to match your corporate brand styles.</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    {/* Agent Display Name Input */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Agent Display Name</label>
+                      <input 
+                        type="text"
+                        value={widgetAgentName}
+                        onChange={(e) => setWidgetAgentName(e.target.value)}
+                        placeholder="Saarthi AI"
+                        className="w-full bg-muted border border-border/40 text-xs px-3 py-2 rounded-lg text-foreground focus:outline-none focus:border-primary/50"
+                      />
+                    </div>
+
+                    {/* Theme Preset Selection */}
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Accent Theme Color</label>
+                      <div className="flex gap-2.5 mt-1">
+                        {[
+                          { name: "Indigo", value: "#7c3aed", bg: "bg-indigo-600" },
+                          { name: "Emerald", value: "#10b981", bg: "bg-emerald-500" },
+                          { name: "Rose", value: "#f43f5e", bg: "bg-rose-500" },
+                          { name: "Amber", value: "#f59e0b", bg: "bg-amber-500" }
+                        ].map((theme) => (
+                          <button
+                            type="button"
+                            key={theme.value}
+                            onClick={() => setWidgetTheme(theme.value)}
+                            className={`w-7 h-7 rounded-full ${theme.bg} border-2 transition-all flex items-center justify-center`}
+                            style={{ borderColor: widgetTheme === theme.value ? "#ffffff" : "transparent" }}
+                            title={theme.name}
+                          >
+                            {widgetTheme === theme.value && <Check className="w-3.5 h-3.5 text-white" />}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="bg-card/45 border-border/40 backdrop-blur-md">
+                <CardHeader>
+                  <CardTitle className="text-base font-semibold">2. Embed Widget Snippet</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">Copy and paste this snippet into the &lt;head&gt; or &lt;body&gt; tag of your site.</p>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="relative">
+                    <div className="bg-muted border border-border/40 rounded-xl p-4 font-mono text-[10px] text-muted-foreground overflow-x-auto relative pt-10 select-all leading-relaxed">
+                      <span className="absolute top-2 left-2 text-[8px] bg-primary/20 text-primary border border-primary/10 px-1.5 py-0.5 rounded uppercase font-bold font-sans">
+                        HTML Embed Tag
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const host = typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
+                          const code = `<!-- SaarthiDesk Chat Widget Embed Code -->
+<script>
+  window.SaarthiDeskSettings = {
+    widgetId: "${workspaceId || "YOUR_WORKSPACE_ID"}",
+    themeColor: "${widgetTheme}",
+    agentName: "${widgetAgentName}",
+    apiHost: "${host}"
+  };
+  (function() {
+    var d = document;
+    var s = d.createElement("script");
+    s.src = "${host}/widget.js";
+    s.async = 1;
+    d.getElementsByTagName("head")[0].appendChild(s);
+  })();
+</script>`;
+                          navigator.clipboard.writeText(code);
+                          setToastMessage("HTML script block copied successfully!");
+                          setTimeout(() => setToastMessage(null), 3000);
+                        }}
+                        className="absolute top-2 right-2 p-1.5 bg-muted/80 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/40 rounded-lg transition-colors flex items-center gap-1 text-[10px] font-sans"
+                      >
+                        <Copy className="w-3 h-3" /> Copy Snippet
+                      </button>
+                      <pre className="text-foreground leading-relaxed whitespace-pre font-mono">
+{`<!-- SaarthiDesk Chat Widget Embed Code -->
+<script>
+  window.SaarthiDeskSettings = {
+    widgetId: "${workspaceId || "YOUR_WORKSPACE_ID"}",
+    themeColor: "${widgetTheme}",
+    agentName: "${widgetAgentName}",
+    apiHost: "${typeof window !== "undefined" ? window.location.origin : "http://localhost:3000"}"
+  };
+  (function() {
+    var d = document;
+    var s = d.createElement("script");
+    s.src = "${typeof window !== "undefined" ? window.location.origin : "http://localhost:3000"}/widget.js";
+    s.async = 1;
+    d.getElementsByTagName("head")[0].appendChild(s);
+  })();
+</script>`}
+                      </pre>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
         </div>
 
         {/* Webhooks payload tester (Right Column - 3 grids) */}
         <div className="lg:col-span-3 space-y-6">
-          <Card className="bg-card/45 border-border/40 backdrop-blur-md">
-            <CardHeader>
-              <CardTitle className="text-base font-semibold text-foreground">Webhook Payload Tester</CardTitle>
-              <p className="text-xs text-muted-foreground mt-0.5">Fire simulated triggers and analyze raw network status logs</p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              
-              <div className="bg-muted border border-border/40 rounded-xl p-3 font-mono text-[10px] text-muted-foreground overflow-x-auto relative">
-                <span className="absolute top-2 right-2 text-[8px] bg-primary/20 text-primary border border-primary/10 px-1 rounded uppercase font-bold font-sans">
-                  Target: {selectedEvents[0] || "lead.created"}
-                </span>
-                <pre className="text-foreground leading-relaxed">
+          
+          {activeTab !== "widget" && (
+            <Card className="bg-card/45 border-border/40 backdrop-blur-md">
+              <CardHeader>
+                <CardTitle className="text-base font-semibold text-foreground">Webhook Payload Tester</CardTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">Fire simulated triggers and analyze raw network status logs</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                
+                <div className="bg-muted border border-border/40 rounded-xl p-3 font-mono text-[10px] text-muted-foreground overflow-x-auto relative">
+                  <span className="absolute top-2 right-2 text-[8px] bg-primary/20 text-primary border border-primary/10 px-1 rounded uppercase font-bold font-sans">
+                    Target: {selectedEvents[0] || "lead.created"}
+                  </span>
+                  <pre className="text-foreground leading-relaxed">
 {`{
   "event": "${selectedEvents[0] || "lead.created"}",
   "timestamp": ${Date.now().toString().substring(0, 10)},
@@ -387,35 +529,55 @@ export default function IntegrationsPage() {
     "category": "High Intent"
   }
 }`}
-                </pre>
-              </div>
-
-              <button 
-                onClick={testWebhookPayload}
-                disabled={isTestingWebhook}
-                className="w-full py-2 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/20 font-bold rounded-lg transition-all text-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
-              >
-                <Play className="w-3.5 h-3.5" /> {isTestingWebhook ? "Sending Payload..." : "Test Dispatch Endpoint"}
-              </button>
-
-              {/* Webhook tester JSON results */}
-              {webhookTestResult && (
-                <div className="bg-emerald-950/20 border border-emerald-500/20 rounded-xl p-3 space-y-3 animate-in fade-in duration-300">
-                  <div className="flex justify-between items-center text-xs font-bold text-emerald-400">
-                    <span className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> 🟢 Response: 200 OK
-                    </span>
-                    <span className="font-mono text-[10px]">242 ms</span>
-                  </div>
-                  
-                  <div className="font-mono text-[9px] text-zinc-300 bg-black/40 border border-border/20 p-2.5 rounded-lg overflow-x-auto">
-                    <pre>{webhookTestResult}</pre>
-                  </div>
+                  </pre>
                 </div>
-              )}
 
-            </CardContent>
-          </Card>
+                <button 
+                  onClick={testWebhookPayload}
+                  disabled={isTestingWebhook}
+                  className="w-full py-2 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/20 font-bold rounded-lg transition-all text-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
+                >
+                  <Play className="w-3.5 h-3.5" /> {isTestingWebhook ? "Sending Payload..." : "Test Dispatch Endpoint"}
+                </button>
+
+                {/* Webhook tester JSON results */}
+                {webhookTestResult && (
+                  <div className="bg-emerald-950/20 border border-emerald-500/20 rounded-xl p-3 space-y-3 animate-in fade-in duration-300">
+                    <div className="flex justify-between items-center text-xs font-bold text-emerald-400">
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span> 🟢 Response: 200 OK
+                      </span>
+                      <span className="font-mono text-[10px]">242 ms</span>
+                    </div>
+                    
+                    <div className="font-mono text-[9px] text-zinc-300 bg-black/40 border border-border/20 p-2.5 rounded-lg overflow-x-auto">
+                      <pre>{webhookTestResult}</pre>
+                    </div>
+                  </div>
+                )}
+
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === "widget" && (
+            <Card className="bg-card/45 border-border/40 backdrop-blur-md overflow-hidden p-0 border shadow-[0_12px_40px_rgba(0,0,0,0.25)] rounded-2xl">
+              <div className="bg-muted/45 border-b border-border/30 p-3.5 flex justify-between items-center px-4">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                  <span className="text-[11px] font-bold tracking-tight text-foreground uppercase">Live Simulator Sandbox</span>
+                </div>
+              </div>
+              <div className="h-[520px] bg-slate-950 flex flex-col relative">
+                <iframe 
+                  key={`${widgetTheme}-${widgetAgentName}-${workspaceId}`}
+                  src={`/widget/chat?widgetId=${workspaceId || "saarthi-demo"}&theme=${encodeURIComponent(widgetTheme)}&agentName=${encodeURIComponent(widgetAgentName)}`}
+                  className="w-full h-full border-none block"
+                />
+              </div>
+            </Card>
+          )}
+
         </div>
 
       </div>
