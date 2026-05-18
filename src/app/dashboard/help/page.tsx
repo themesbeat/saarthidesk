@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   BookOpen, Search, Sparkles, FileText, ChevronRight, HelpCircle,
@@ -34,7 +34,7 @@ export default function HelpCenterPage() {
 
   const [articles, setArticles] = useState<HelpArticle[]>([]);
 
-  const fetchArticles = async () => {
+  const fetchArticles = useCallback(async () => {
     try {
       const res = await fetch("/api/knowledge");
       const data = await res.json();
@@ -70,11 +70,11 @@ export default function HelpCenterPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedArticleId]);
 
   useEffect(() => {
     fetchArticles();
-  }, []);
+  }, [fetchArticles]);
 
   const triggerCrawlerSimulation = () => {
     if (isCrawling) return;

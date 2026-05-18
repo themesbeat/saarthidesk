@@ -288,7 +288,7 @@ export default function AIAgentConfigPage() {
                   ].map((tone) => (
                     <button
                       key={tone.id}
-                      onClick={() => setSelectedTone(tone.id as any)}
+                      onClick={() => setSelectedTone(tone.id as "professional" | "casual" | "empathetic" | "enthusiastic")}
                       className={`flex flex-col items-center gap-2 p-3 rounded-xl border text-center transition-all ${
                         selectedTone === tone.id 
                           ? "bg-primary/20 border-primary text-primary shadow-[0_0_12px_rgba(209,188,255,0.1)]" 
@@ -369,15 +369,15 @@ export default function AIAgentConfigPage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {[
-                  { key: "english", label: "English" },
-                  { key: "hindi", label: "Hindi (हिंदी)" },
-                  { key: "hinglish", label: "Hinglish (Hindi written in English)" },
-                  { key: "spanish", label: "Spanish (Español)" }
+                  { key: "english" as const, label: "English" },
+                  { key: "hindi" as const, label: "Hindi (हिंदी)" },
+                  { key: "hinglish" as const, label: "Hinglish (Hindi written in English)" },
+                  { key: "spanish" as const, label: "Spanish (Español)" }
                 ].map((lang) => (
                   <label key={lang.key} className="flex items-center gap-3 p-2 rounded-lg bg-background/30 border border-border/30 hover:bg-muted cursor-pointer transition-colors">
                     <input 
                       type="checkbox"
-                      checked={(languages as any)[lang.key]}
+                      checked={languages[lang.key]}
                       onChange={(e) => setLanguages({ ...languages, [lang.key]: e.target.checked })}
                       className="rounded border-border text-primary focus:ring-primary focus:ring-offset-background bg-background w-4 h-4 cursor-pointer"
                     />

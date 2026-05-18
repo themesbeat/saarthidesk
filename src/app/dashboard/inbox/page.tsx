@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -73,7 +73,7 @@ export default function InboxPage() {
   const [isUpdatingLead, setIsUpdatingLead] = useState(false);
   const [simulationRole, setSimulationRole] = useState<"USER" | "CUSTOMER">("USER");
 
-  const fetchConversations = async (autoSelectFirst = false) => {
+  const fetchConversations = useCallback(async (autoSelectFirst = false) => {
     try {
       const res = await fetch("/api/inbox/conversations");
       const data = await res.json();
@@ -88,11 +88,11 @@ export default function InboxPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [selectedConversationId]);
 
   useEffect(() => {
     fetchConversations(true);
-  }, []);
+  }, [fetchConversations]);
 
   const activeConversation = conversations.find(
     (c) => c.id === selectedConversationId
