@@ -33,12 +33,13 @@ export async function POST(request: Request) {
       },
     });
 
-    const botToken = (channel?.credentials as any)?.botToken || "mock_telegram_bot_token";
+    const credentials = channel?.credentials as { botToken?: string } | null;
+    const botToken = credentials?.botToken || "mock_telegram_bot_token";
     const telegramAdapter = new TelegramAdapter(botToken);
 
     // 3. Normalize incoming payload
     const normalized = telegramAdapter.normalizePayload(body);
-    const chatId = normalized.metadata?.chatId?.toString() || normalized.customer.phone || "";
+    const chatId = (normalized.metadata as { chatId?: string | number })?.chatId?.toString() || normalized.customer.phone || "";
 
     // 4. Find or Create Contact in a tenant-isolated query
     let contact = await prisma.contact.findFirst({
@@ -175,8 +176,8 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true, messageId: incomingMessage.id });
-  } catch (err: any) {
+  } catch (err) {
     console.error("[Telegram Webhook] Error:", err);
-    return NextResponse.json({ error: "Internal Server Error", details: err.message }, { status: 500 });
+    return NextResponse.json({ error: "Internal Server Error", details: err instanceof Error ? err.message : "Unknown error" }, { status: 500 });
   }
 }

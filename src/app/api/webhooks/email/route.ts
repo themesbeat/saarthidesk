@@ -33,8 +33,9 @@ export async function POST(request: Request) {
       },
     });
 
-    const apiKey = (channel?.credentials as any)?.apiKey || "mock-key";
-    const fromEmail = (channel?.credentials as any)?.fromEmail || "support@saarthidesk.com";
+    const credentials = channel?.credentials as { apiKey?: string; fromEmail?: string } | null;
+    const apiKey = credentials?.apiKey || "mock-key";
+    const fromEmail = credentials?.fromEmail || "support@saarthidesk.com";
     const emailAdapter = new EmailAdapter(apiKey, fromEmail);
 
     // 3. Normalize incoming payload
@@ -175,8 +176,8 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true, messageId: incomingMessage.id });
-  } catch (err: any) {
+  } catch (err) {
     console.error("[Email Webhook] Error:", err);
-    return NextResponse.json({ error: "Internal Server Error", details: err.message }, { status: 500 });
+    return NextResponse.json({ error: "Internal Server Error", details: err instanceof Error ? err.message : "Unknown error" }, { status: 500 });
   }
 }

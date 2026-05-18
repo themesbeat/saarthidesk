@@ -25,7 +25,7 @@ export async function triggerRealtimeEvent(
   workspaceId: string,
   channel: string,
   event: string,
-  data: any
+  data: unknown
 ) {
   console.log(`[Realtime Broadcast] Workspace: ${workspaceId} | Channel: ${channel} | Event: ${event}`, data);
 

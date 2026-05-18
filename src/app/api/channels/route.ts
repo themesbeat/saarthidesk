@@ -99,9 +99,9 @@ export async function POST(request: Request) {
           } else {
             telegramError = telegramData.description || "Failed to set Telegram webhook";
           }
-        } catch (err: any) {
+        } catch (err) {
           console.error("[TelegramWebhookRegister] Error calling setWebhook:", err);
-          telegramError = err.message || "Failed to register webhook with Telegram";
+          telegramError = err instanceof Error ? err.message : "Failed to register webhook with Telegram";
         }
       }
     }

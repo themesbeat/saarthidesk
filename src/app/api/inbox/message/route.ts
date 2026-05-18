@@ -83,7 +83,8 @@ export async function POST(request: Request) {
     if (sender !== "CUSTOMER" && !isInternal) {
       if (conversation.platform === "TELEGRAM") {
         const tgChannel = conversation.workspace.channels.find(c => c.type === "TELEGRAM" && c.isActive);
-        const botToken = (tgChannel?.credentials as any)?.botToken || "mock_telegram_bot_token";
+        const tgCreds = tgChannel?.credentials as { botToken?: string } | null;
+        const botToken = tgCreds?.botToken || "mock_telegram_bot_token";
         
         const chatId = conversation.contact.phone || "";
         if (chatId) {
@@ -96,8 +97,9 @@ export async function POST(request: Request) {
         }
       } else if (conversation.platform === "EMAIL") {
         const emailChannel = conversation.workspace.channels.find(c => c.type === "EMAIL" && c.isActive);
-        const apiKey = (emailChannel?.credentials as any)?.apiKey || "mock-key";
-        const fromEmail = (emailChannel?.credentials as any)?.fromEmail || "support@saarthidesk.com";
+        const emailCreds = emailChannel?.credentials as { apiKey?: string; fromEmail?: string } | null;
+        const apiKey = emailCreds?.apiKey || "mock-key";
+        const fromEmail = emailCreds?.fromEmail || "support@saarthidesk.com";
         
         const customerEmail = conversation.contact.email || "";
         if (customerEmail) {
@@ -151,7 +153,8 @@ export async function POST(request: Request) {
         // Outbound send back to customer
         if (conversation.platform === "TELEGRAM") {
           const tgChannel = conversation.workspace.channels.find(c => c.type === "TELEGRAM" && c.isActive);
-          const botToken = (tgChannel?.credentials as any)?.botToken || "mock_telegram_bot_token";
+          const tgCreds = tgChannel?.credentials as { botToken?: string } | null;
+          const botToken = tgCreds?.botToken || "mock_telegram_bot_token";
           const chatId = conversation.contact.phone || "";
           if (chatId) {
             const telegramAdapter = new TelegramAdapter(botToken);
@@ -161,8 +164,9 @@ export async function POST(request: Request) {
           }
         } else if (conversation.platform === "EMAIL") {
           const emailChannel = conversation.workspace.channels.find(c => c.type === "EMAIL" && c.isActive);
-          const apiKey = (emailChannel?.credentials as any)?.apiKey || "mock-key";
-          const fromEmail = (emailChannel?.credentials as any)?.fromEmail || "support@saarthidesk.com";
+          const emailCreds = emailChannel?.credentials as { apiKey?: string; fromEmail?: string } | null;
+          const apiKey = emailCreds?.apiKey || "mock-key";
+          const fromEmail = emailCreds?.fromEmail || "support@saarthidesk.com";
           const customerEmail = conversation.contact.email || "";
           if (customerEmail) {
             const emailAdapter = new EmailAdapter(apiKey, fromEmail);

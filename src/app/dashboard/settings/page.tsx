@@ -103,7 +103,7 @@ export default function SettingsPage() {
         const teamRes = await fetch("/api/team");
         const teamData = await teamRes.json();
         if (teamData.success && teamData.members) {
-          const mappedTeam: Teammate[] = teamData.members.map((m: any) => ({
+          const mappedTeam: Teammate[] = teamData.members.map((m: { id: string; role: string; user?: { name?: string; email: string } }) => ({
             id: m.id,
             name: m.user?.name || m.user?.email.split("@")[0] || "Support Staff",
             email: m.user?.email || "",
@@ -133,7 +133,7 @@ export default function SettingsPage() {
           const activeChannels = channelData.channels || [];
           setIntegrations((prev) => 
             prev.map((item) => {
-              const dbMatch = activeChannels.find((c: any) => c.type.toLowerCase() === item.id.toLowerCase());
+              const dbMatch = activeChannels.find((c: { type: string; isActive: boolean }) => c.type.toLowerCase() === item.id.toLowerCase());
               return {
                 ...item,
                 connected: dbMatch ? dbMatch.isActive : false
@@ -142,7 +142,7 @@ export default function SettingsPage() {
           );
 
           // Get bot token if telegram is connected
-          const telegramDb = activeChannels.find((c: any) => c.type === "TELEGRAM");
+          const telegramDb = activeChannels.find((c: { type: string; credentials?: { botToken?: string } }) => c.type === "TELEGRAM");
           if (telegramDb?.credentials?.botToken) {
             setTelegramToken(telegramDb.credentials.botToken);
           }

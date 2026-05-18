@@ -1,6 +1,39 @@
 import { IChannelAdapter } from "./adapter.interface";
 import { NormalizedMessage } from "../types/normalized";
 
+interface TelegramPayload {
+  message?: {
+    message_id?: number | string;
+    from?: {
+      id?: number | string;
+      first_name?: string;
+      last_name?: string;
+      username?: string;
+      language_code?: string;
+    };
+    chat?: {
+      id?: number | string;
+    };
+    text?: string;
+    date?: number;
+  };
+  edited_message?: {
+    message_id?: number | string;
+    from?: {
+      id?: number | string;
+      first_name?: string;
+      last_name?: string;
+      username?: string;
+      language_code?: string;
+    };
+    chat?: {
+      id?: number | string;
+    };
+    text?: string;
+    date?: number;
+  };
+}
+
 export class TelegramAdapter implements IChannelAdapter {
   private botToken: string;
 
@@ -8,8 +41,9 @@ export class TelegramAdapter implements IChannelAdapter {
     this.botToken = botToken;
   }
 
-  normalizePayload(payload: any): NormalizedMessage {
-    const message = payload.message || payload.edited_message;
+  normalizePayload(payload: unknown): NormalizedMessage {
+    const tgPayload = payload as TelegramPayload;
+    const message = tgPayload.message || tgPayload.edited_message;
     if (!message) {
       throw new Error("Invalid Telegram payload: no message body found");
     }
@@ -30,7 +64,7 @@ export class TelegramAdapter implements IChannelAdapter {
       },
       content: message.text || "",
       messageType: "TEXT",
-      timestamp: new Date(message.date * 1000),
+      timestamp: message.date ? new Date(message.date * 1000) : new Date(),
       metadata: {
         chatId: message.chat?.id,
         username: from.username,
@@ -39,7 +73,7 @@ export class TelegramAdapter implements IChannelAdapter {
     };
   }
 
-  async sendOutgoingMessage(chatId: string, content: string, attachments?: any[]): Promise<boolean> {
+  async sendOutgoingMessage(chatId: string, content: string, attachments?: unknown[]): Promise<boolean> {
     try {
       const url = `https://api.telegram.org/bot${this.botToken}/sendMessage`;
       const response = await fetch(url, {

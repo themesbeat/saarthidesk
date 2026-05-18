@@ -17,5 +17,6 @@ export type NormalizedMessage = {
     name?: string;
   }[];
   timestamp: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 };
+
