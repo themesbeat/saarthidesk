@@ -213,7 +213,7 @@ export default function InboxPage() {
   return (
     <div className="h-full flex overflow-hidden">
       {/* LEFT PANEL: Conversation List */}
-      <div className="w-80 flex-shrink-0 border-r border-border/50 flex flex-col bg-background/50 backdrop-blur-sm">
+      <div className="w-80 flex-shrink-0 border-r border-border/50 flex flex-col bg-background/50 backdrop-blur-sm min-h-0">
         <div className="p-4 border-b border-border/50 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-foreground">Inbox</h2>
@@ -244,7 +244,7 @@ export default function InboxPage() {
           </Tabs>
         </div>
 
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 min-h-0">
           <div className="flex flex-col">
             {isLoading ? (
               <div className="flex items-center justify-center p-8 gap-2 text-muted-foreground">
@@ -325,7 +325,7 @@ export default function InboxPage() {
       </div>
 
       {/* CENTER: Chat Area */}
-      <div className="flex-1 flex flex-col bg-background relative">
+      <div className="flex-1 flex flex-col bg-background relative min-h-0">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-slate-950 to-slate-950 pointer-events-none" />
 
         {activeConversation ? (
@@ -367,7 +367,7 @@ export default function InboxPage() {
             </div>
 
             {/* Messages Area */}
-            <ScrollArea className="flex-1 p-6 relative z-10">
+            <ScrollArea className="flex-1 min-h-0 p-6 relative z-10">
               <div className="space-y-6 flex flex-col justify-end min-h-full">
                 <div className="flex justify-center">
                   <Badge variant="outline" className="bg-card border-border/50 text-muted-foreground/80 text-[10px]">
@@ -571,7 +571,7 @@ export default function InboxPage() {
       </div>
 
       {/* RIGHT PANEL: Lead & CRM Details */}
-      <div className="w-80 flex-shrink-0 border-l border-border/50 bg-background/50 backdrop-blur-sm hidden lg:flex flex-col">
+      <div className="w-80 flex-shrink-0 border-l border-border/50 bg-background/50 backdrop-blur-sm hidden lg:flex flex-col min-h-0">
         <div className="h-16 border-b border-border/50 flex items-center justify-between px-6">
           <h2 className="font-semibold text-foreground">CRM Profile</h2>
           {activeConversation && (
@@ -591,7 +591,7 @@ export default function InboxPage() {
           )}
         </div>
 
-        <ScrollArea className="flex-1 p-6">
+        <ScrollArea className="flex-1 min-h-0 p-6">
           {activeConversation ? (
             <div className="space-y-6">
               {/* Contact Info */}

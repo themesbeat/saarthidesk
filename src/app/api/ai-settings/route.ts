@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { tone, autoReply, languages } = await request.json();
+    const { tone, autoReply, languages, agentName, systemPrompt, escalateEmail, escalatePhone } = await request.json();
 
     const workspace = await getOrCreateActiveWorkspace(session.user.id);
 
@@ -46,12 +46,20 @@ export async function POST(request: Request) {
         tone: tone || "PROFESSIONAL",
         autoReply: autoReply !== undefined ? autoReply : true,
         languages: languages || ["en"],
+        agentName: agentName !== undefined ? agentName : "Saarthi AI",
+        systemPrompt: systemPrompt !== undefined ? systemPrompt : "",
+        escalateEmail: escalateEmail !== undefined ? escalateEmail : "support@saarthidesk.com",
+        escalatePhone: escalatePhone !== undefined ? escalatePhone : "+91 98765 43210",
       },
       create: {
         workspaceId: workspace.id,
         tone: tone || "PROFESSIONAL",
         autoReply: autoReply !== undefined ? autoReply : true,
         languages: languages || ["en"],
+        agentName: agentName !== undefined ? agentName : "Saarthi AI",
+        systemPrompt: systemPrompt !== undefined ? systemPrompt : "",
+        escalateEmail: escalateEmail !== undefined ? escalateEmail : "support@saarthidesk.com",
+        escalatePhone: escalatePhone !== undefined ? escalatePhone : "+91 98765 43210",
       },
     });
 

@@ -65,6 +65,11 @@ export default function AIAgentConfigPage() {
         if (data.settings) {
           const s = data.settings;
           
+          if (s.agentName) setAgentName(s.agentName);
+          if (s.systemPrompt) setSystemPrompt(s.systemPrompt);
+          if (s.escalateEmail) setEscalateEmail(s.escalateEmail);
+          if (s.escalatePhone) setEscalatePhone(s.escalatePhone);
+          
           // Map DB tone (e.g. "PROFESSIONAL", "CASUAL", etc.) to UI selections
           if (s.tone) {
             const mappedTone = s.tone.toLowerCase();
@@ -111,11 +116,14 @@ export default function AIAgentConfigPage() {
           tone: selectedTone.toUpperCase(),
           autoReply,
           languages: languageArray,
+          agentName,
+          systemPrompt,
+          escalateEmail,
+          escalatePhone,
         }),
       });
 
       if (res.ok) {
-        // Configuration Saved Success Alert
         alert("Saarthi AI Brain Configuration Saved and Synced persistently with PostgreSQL database!");
       }
     } catch (err) {
@@ -130,67 +138,56 @@ export default function AIAgentConfigPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
 
+    const userMsgText = inputValue.trim();
     const userMessage: Message = {
       id: Date.now().toString(),
       sender: "user",
-      text: inputValue.trim(),
+      text: userMsgText,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    const question = inputValue.trim().toLowerCase();
     setInputValue("");
     setIsTyping(true);
 
-    // Simulate AI response based on the configuration and user input
-    setTimeout(() => {
-      let aiResponseText = "";
-      let confidence = 85 + Math.floor(Math.random() * 14);
-      let citedSource = "General_Knowledge_Base";
+    try {
+      // Query our new backend AI playground endpoint for a real grounding test!
+      const res = await fetch("/api/ai-settings/playground", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMsgText }),
+      });
 
-      // 1. Context-based response logic
-      if (question.includes("pricing") || question.includes("price") || question.includes("cost") || question.includes("package")) {
-        aiResponseText = "Our packages start at ₹1,999/month for the Starter plan and ₹4,999/month for the Premium package. The Premium package includes unlimited AI replies, automated reminders, and complete multi-role collaboration.";
-        citedSource = "Pricing_Brochure_2026.pdf";
-      } else if (question.includes("book") || question.includes("appointment") || question.includes("schedule") || question.includes("slot")) {
-        aiResponseText = "Sure! I would be happy to book that slot for you. We have slots available tomorrow at 11:30 AM or Tuesday at 2:00 PM. Which one works best?";
-        citedSource = "Appointment_Scheduler_Rules";
-      } else if (question.includes("hours") || question.includes("time") || question.includes("timing") || question.includes("open")) {
-        aiResponseText = "We are open Monday through Saturday, from 9:00 AM to 8:00 PM. We are closed on Sundays.";
-        citedSource = "Business_Info_Sheet";
-      } else if (question.includes("human") || question.includes("agent") || question.includes("talk to a person") || question.includes("transfer")) {
-        aiResponseText = `Understood. I am transferring you to a human agent. They will follow up shortly at ${escalatePhone} or via email at ${escalateEmail}.`;
-        citedSource = "Smart_Escalation_Protocol";
-        confidence = 99;
-      } else {
-        aiResponseText = `I have received your request regarding "${userMessage.text}". I can confirm that Saarthi AI is trained to handle this perfectly! What would you like to know next?`;
-      }
-
-      // 2. Adjust reply based on the selected tone
-      if (selectedTone === "casual") {
-        aiResponseText = `Hey there! 😊 ${aiResponseText.replace("Namaste!", "Hey!")} Let me know if you need anything else! 🚀`;
-      } else if (selectedTone === "empathetic") {
-        aiResponseText = `I completely understand your query. ❤️ ${aiResponseText} We are here to support you at every step.`;
-      } else if (selectedTone === "enthusiastic") {
-        aiResponseText = `Awesome question! 🎉 ${aiResponseText} We are super excited to help you optimize your business workflow today! ✨`;
-      }
-
+      const data = await res.json();
+      
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         sender: "ai",
-        text: aiResponseText,
+        text: data.text || "I have received your request. Let me look into that.",
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        confidence,
-        source: citedSource
+        confidence: data.confidence || 85,
+        source: data.source || "System_Prompt_Instructions"
       };
 
       setMessages((prev) => [...prev, aiMessage]);
+    } catch (err) {
+      console.error("Playground simulation error:", err);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        sender: "ai",
+        text: "Apologies, there was an issue retrieving the response from my brain database. Please try again.",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        confidence: 0,
+        source: "Error_Recovery_Fallback"
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1200);
+    }
   };
 
   const handleResetChat = () => {

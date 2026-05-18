@@ -145,13 +145,17 @@ model KnowledgeBase {
 }
 
 model AiSettings {
-  id          String   @id @default(uuid())
-  workspaceId String   @unique
-  tone        String   @default("PROFESSIONAL")
-  autoReply   Boolean  @default(false)
-  languages   String[] @default(["en"])
+  id            String   @id @default(uuid())
+  workspaceId   String   @unique
+  tone          String   @default("PROFESSIONAL")
+  autoReply     Boolean  @default(false)
+  languages     String[] @default(["en"])
+  agentName     String   @default("Saarthi AI")
+  systemPrompt  String   @default("You are Saarthi, a virtual receptionist for Acme Corp. You are helpful, polite, and focused on booking appointments and answering general questions about our services. If a customer is frustrated or asks for human assistance, transfer them immediately.")
+  escalateEmail String   @default("support@saarthidesk.com")
+  escalatePhone String   @default("+91 98765 43210")
   
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
 model Session {

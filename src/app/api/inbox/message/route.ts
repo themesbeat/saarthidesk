@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { triggerRealtimeEvent } from "@/lib/pusher";
 import { TelegramAdapter } from "@/lib/adapters/telegram.adapter";
 import { EmailAdapter } from "@/lib/adapters/email.adapter";
+import { generateAiReply } from "@/lib/ai-engine";
 
 export async function POST(request: Request) {
   const session = await auth.api.getSession({
@@ -114,21 +115,8 @@ export async function POST(request: Request) {
     if (sender === "CUSTOMER" && conversation.aiEnabled) {
       const autoReplyEnabled = conversation.workspace.aiSettings?.autoReply ?? true;
       if (autoReplyEnabled) {
-        const tone = conversation.workspace.aiSettings?.tone || "PROFESSIONAL";
-        let aiReplyText = "Thank you for reaching out. Let me look into this for you.";
-
-        if (tone === "FRIENDLY") {
-          aiReplyText = "Hey! Thanks so much for messaging us! 😊 I'd be absolutely thrilled to help you out with this. Let me check the details for you right away!";
-        } else if (tone === "BOLD") {
-          aiReplyText = "Got your inquiry. We are on it. Let's make things happen! Hang tight, I'll get back to you with answers in a flash.";
-        } else if (tone === "EMPATHETIC") {
-          aiReplyText = "I completely understand how important this is to you, and I am here to help. I am reviewing your request right away to ensure we resolve it perfectly for you.";
-        } else if (tone === "ACADEMIC") {
-          aiReplyText = "Your transmission has been logged. We are analyzing the technical specifications to formulate a optimized resolution schema. Please remain online.";
-        } else {
-          // PROFESSIONAL
-          aiReplyText = "Thank you for your message. I am reviewing your inquiry and will provide the relevant information shortly. Please let me know if you have any additional details to add.";
-        }
+        // Call our dynamic AI Engine!
+        const { text: aiReplyText } = await generateAiReply(conversation.workspaceId, content);
 
         // Store the AI reply record in the database
         aiResponse = await prisma.message.create({

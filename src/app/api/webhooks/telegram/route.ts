@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { TelegramAdapter } from "@/lib/adapters/telegram.adapter";
 import { triggerRealtimeEvent } from "@/lib/pusher";
+import { generateAiReply } from "@/lib/ai-engine";
 
 export async function POST(request: Request) {
   try {
@@ -124,21 +125,8 @@ export async function POST(request: Request) {
     });
 
     if (conversation.aiEnabled && aiSettings?.autoReply) {
-      const tone = aiSettings.tone || "PROFESSIONAL";
-      let aiReplyText = "";
-
-      if (tone === "FRIENDLY") {
-        aiReplyText = `Hey ${contact.name}! Thanks so much for reaching out to us on Telegram! 😊 I'd be absolutely thrilled to help you out with this. Let me verify the details for you right now!`;
-      } else if (tone === "BOLD") {
-        aiReplyText = `Got your Telegram message, ${contact.name}! We are on it. Let's make things happen! Hang tight, I'll get back to you with answers in a flash.`;
-      } else if (tone === "EMPATHETIC") {
-        aiReplyText = `Hello ${contact.name}. I completely understand how important this is to you, and I am here to help. I am reviewing your request right away to ensure we resolve it perfectly for you.`;
-      } else if (tone === "ACADEMIC") {
-        aiReplyText = `Transmission received, ${contact.name}. We are analyzing the technical specifications to formulate an optimized resolution schema. Please remain online.`;
-      } else {
-        // PROFESSIONAL
-        aiReplyText = `Thank you for your message, ${contact.name}. I am reviewing your inquiry and will provide the relevant information shortly. Please let me know if you have any additional details to add.`;
-      }
+      // Call our robust AI Engine to produce grounded replies dynamically!
+      const { text: aiReplyText } = await generateAiReply(workspaceId, normalized.content);
 
       // Write AI response to DB
       const outgoingMessage = await prisma.message.create({
