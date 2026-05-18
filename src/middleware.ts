@@ -12,6 +12,7 @@ export async function middleware(request: NextRequest) {
     // Check for both HTTP and HTTPS (Secure) session cookies used by Better Auth
     const sessionToken = 
         request.cookies.get("better-auth.session_token") || 
+        request.cookies.get("__Secure-better-auth.session_token") ||
         request.cookies.get("__secure-better-auth.session_token");
 
     const hasSession = !!sessionToken;
