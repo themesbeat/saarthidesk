@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { performHybridSearch } from "./vector-service";
 
 const STOP_WORDS = new Set([
   "the", "a", "an", "and", "or", "but", "is", "are", "was", "were", "of", "to", "in", "for", "with", "on", "at", "by", 
@@ -36,50 +37,9 @@ export async function generateAiReply(
       });
     }
 
-    const { agentName, systemPrompt, tone, escalateEmail, escalatePhone } = aiSettings;
+    const { agentName, tone, escalateEmail, escalatePhone } = aiSettings;
 
-    // 2. Fetch Knowledge Base articles
-    const knowledgeBase = await prisma.knowledgeBase.findMany({
-      where: { workspaceId },
-    });
-
-    // 3. Keyword Context Retrieval (Semantic/Keyword matcher)
-    const cleanQuery = userMessage.toLowerCase().replace(/[^\w\s]/g, " ");
-    const queryWords = cleanQuery.split(/\s+/).filter(w => w.length > 2 && !STOP_WORDS.has(w));
-    let bestArticle = null;
-    let maxMatchCount = 0;
-
-    if (queryWords.length > 0) {
-      for (const article of knowledgeBase) {
-        let matches = 0;
-        const titleClean = article.title.toLowerCase().replace(/[^\w\s]/g, " ");
-        const contentClean = article.content.toLowerCase().replace(/[^\w\s]/g, " ");
-        
-        const titleTokens = titleClean.split(/\s+/);
-        const contentTokens = contentClean.split(/\s+/);
-
-        for (const word of queryWords) {
-          if (titleTokens.includes(word)) {
-            matches += 8; // Exact word match in Title
-          } else if (titleClean.includes(word)) {
-            matches += 3; // Partial word match in Title
-          }
-
-          if (contentTokens.includes(word)) {
-            matches += 4; // Exact word match in Content
-          } else if (contentClean.includes(word)) {
-            matches += 1; // Partial word match in Content
-          }
-        }
-
-        if (matches > maxMatchCount) {
-          maxMatchCount = matches;
-          bestArticle = article;
-        }
-      }
-    }
-
-    // 4. Escalation Detection
+    // 2. Escalation Detection
     const escalationKeywords = [
       "human", "agent", "person", "talk to", "representative", "manager", "support", 
       "complain", "transfer", "help desk", "operator", "call me", "phone", "email"
@@ -109,25 +69,30 @@ export async function generateAiReply(
       };
     }
 
-    // 5. Build Grounded Generative Reply
+    // 3. Advanced Vector/Hybrid Search Context Retrieval
+    const searchResults = await performHybridSearch(workspaceId, userMessage, {
+      limit: 3,
+      threshold: 0.38
+    });
+
     let baseResponse = "";
     let confidence = 75;
     let source = "General_Knowledge_Base";
 
-    if (bestArticle && maxMatchCount > 0) {
-      confidence = Math.min(98, 85 + maxMatchCount * 2);
-      source = `${bestArticle.title} (${bestArticle.type})`;
+    if (searchResults.length > 0) {
+      const topMatch = searchResults[0];
+      confidence = Math.round(topMatch.similarity * 100);
+      source = topMatch.metadata.source;
       
-      const cleanContent = bestArticle.content.trim();
+      const cleanContent = topMatch.content.trim();
       if (cleanContent.length <= 220) {
-        baseResponse = `According to our records for "${bestArticle.title}": ${cleanContent}`;
+        baseResponse = `${cleanContent}`;
       } else {
         const sentences = cleanContent.split(/(?<=[.!?])\s+/).filter(l => l.trim().length > 0);
-        const snippet = sentences.slice(0, 2).join(" ");
-        baseResponse = `According to our records for "${bestArticle.title}": ${snippet}...`;
+        baseResponse = sentences.slice(0, 2).join(" ");
       }
     } else {
-      // Default persona-driven replies if no direct knowledge match
+      // 4. Default persona-driven replies if no direct knowledge match
       const lowerMsg = userMessage.toLowerCase();
       if (
         lowerMsg.includes("pricing") || 
@@ -157,7 +122,7 @@ export async function generateAiReply(
     // Apply Tone Stylings
     let styledResponse = baseResponse;
     if (tone === "CASUAL") {
-      styledResponse = `Hey there! 😊 ${baseResponse.replace("Namaste!", "Hey!")} Hope that helps! Let me know if you need anything else! 🚀`;
+      styledResponse = `Hey there! 😊 ${baseResponse} Hope that helps! Let me know if you need anything else! 🚀`;
     } else if (tone === "EMPATHETIC") {
       styledResponse = `I completely understand your query. ❤️ ${baseResponse} We are absolutely here to support you at every single step!`;
     } else if (tone === "ENTHUSIASTIC") {

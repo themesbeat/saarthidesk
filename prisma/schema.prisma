@@ -28,17 +28,25 @@ model Workspace {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
-  members       WorkspaceMember[]
-  conversations Conversation[]
-  leads         Lead[]
-  knowledge     KnowledgeBase[]
-  aiSettings    AiSettings?
-  appointments  Appointment[]
-  waitlist      WaitlistEntry[]
-  campaigns     Campaign[]
-  bookingRule   BookingRule?
-  contacts      Contact[]
-  channels      Channel[]
+  members             WorkspaceMember[]
+  conversations       Conversation[]
+  leads               Lead[]
+  knowledge           KnowledgeBase[]
+  aiSettings          AiSettings?
+  appointments        Appointment[]
+  waitlist            WaitlistEntry[]
+  campaigns           Campaign[]
+  bookingRule         BookingRule?
+  contacts            Contact[]
+  channels            Channel[]
+  knowledgeDocuments  KnowledgeDocument[]
+  knowledgeChunks     KnowledgeChunk[]
+  knowledgeCategories KnowledgeCategory[]
+  knowledgeTags       KnowledgeTag[]
+  trainingLogs        KnowledgeTrainingLog[]
+  searchLogs          KnowledgeSearchLog[]
+  aiFeedbacks         AiFeedback[]
+  aiPrompts           AiPrompt[]
 }
 
 model WorkspaceMember {
@@ -247,4 +255,115 @@ model BookingRule {
   reminder1h    Boolean  @default(true)
   
   workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model KnowledgeDocument {
+  id          String   @id @default(uuid())
+  workspaceId String
+  title       String
+  content     String   @db.Text
+  type        String   // PDF, DOCX, TXT, CSV, URL, SITEMAP, FAQ
+  sourceUrl   String?
+  status      String   @default("PUBLISHED") // DRAFT, PUBLISHED, ARCHIVED
+  visibility  String   @default("PUBLIC") // PUBLIC, INTERNAL
+  version     Int      @default(1)
+  categoryId  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  category    KnowledgeCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  chunks      KnowledgeChunk[]
+  tags        KnowledgeTag[]
+}
+
+model KnowledgeChunk {
+  id          String   @id @default(uuid())
+  workspaceId String
+  documentId  String
+  content     String   @db.Text
+  embedding   Json     // Store as JSON float array for generic environment support
+  metadata    Json     // Store metadata like chunk index, character bounds, source, etc.
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  document    KnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model KnowledgeCategory {
+  id          String   @id @default(uuid())
+  workspaceId String
+  name        String
+  slug        String
+  description String?
+  icon        String?  @default("BookOpen")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  documents   KnowledgeDocument[]
+}
+
+model KnowledgeTag {
+  id          String   @id @default(uuid())
+  workspaceId String
+  name        String
+  createdAt   DateTime @default(now())
+  
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  documents   KnowledgeDocument[]
+}
+
+model KnowledgeTrainingLog {
+  id           String   @id @default(uuid())
+  workspaceId  String
+  source       String
+  status       String   // PENDING, PROCESSING, COMPLETED, FAILED
+  chunksCount  Int      @default(0)
+  errorMessage String?
+  createdAt    DateTime @default(now())
+  
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model KnowledgeSearchLog {
+  id              String   @id @default(uuid())
+  workspaceId     String
+  query           String
+  confidenceScore Float
+  wasHelpful      Boolean?
+  matchedChunks   Json?    // Citations / sources
+  answer          String?  @db.Text
+  latencyMs       Int      @default(0)
+  createdAt       DateTime @default(now())
+  
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model AiFeedback {
+  id          String   @id @default(uuid())
+  workspaceId String
+  messageId   String?
+  query       String
+  response    String   @db.Text
+  helpful     Boolean
+  comments    String?
+  createdAt   DateTime @default(now())
+  
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model AiPrompt {
+  id           String   @id @default(uuid())
+  workspaceId  String
+  name         String
+  systemPrompt String   @db.Text
+  userTemplate String?  @db.Text
+  temperature  Float    @default(0.7)
+  isActive     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }

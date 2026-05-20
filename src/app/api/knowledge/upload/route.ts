@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { getOrCreateActiveWorkspace } from "@/lib/workspace";
 import mammoth from "mammoth";
 import { extractText } from "unpdf";
+import { processDocumentIngestion } from "@/lib/rag-pipeline";
 
 export async function POST(request: Request) {
   const session = await auth.api.getSession({
@@ -18,6 +19,7 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
+    const categoryId = formData.get("categoryId") as string | null;
 
     if (!file) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
@@ -28,13 +30,12 @@ export async function POST(request: Request) {
     const extension = filename.split(".").pop()?.toLowerCase();
 
     let extractedText = "";
-    let type: "PDF_TEXT" | "TEXT" = "TEXT";
+    let type = "TXT";
 
     if (extension === "pdf") {
-      type = "PDF_TEXT";
+      type = "PDF";
       try {
         const bytes = await file.arrayBuffer();
-        // unpdf uses Wasm-based pdfjs internally — fully Node.js compatible, no DOMMatrix needed
         const { text } = await extractText(new Uint8Array(bytes), { mergePages: true });
         extractedText = text || "";
       } catch (err) {
@@ -42,7 +43,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: `Failed to parse PDF document: ${err instanceof Error ? err.message : String(err)}` }, { status: 400 });
       }
     } else if (extension === "docx") {
-      type = "PDF_TEXT"; // Map DOCX text extraction to the same category as PDF_TEXT for DB consistency
+      type = "DOCX";
       try {
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: `Failed to parse Word document: ${err instanceof Error ? err.message : String(err)}` }, { status: 400 });
       }
     } else if (["txt", "md", "csv", "json"].includes(extension || "")) {
-      type = "TEXT";
+      type = extension?.toUpperCase() || "TXT";
       try {
         extractedText = await file.text();
       } catch (err) {
@@ -75,22 +76,23 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
-    // Truncate to maximum performant size in database (12,000 characters)
-    if (extractedText.length > 12000) {
-      extractedText = extractedText.substring(0, 12000) + "... [truncated]";
-    }
-
-    // Create the KnowledgeBase article
-    const article = await prisma.knowledgeBase.create({
+    // Create the KnowledgeDocument
+    const doc = await prisma.knowledgeDocument.create({
       data: {
         workspaceId: workspace.id,
         title: filename,
         content: extractedText,
         type,
+        status: "PUBLISHED",
+        visibility: "PUBLIC",
+        categoryId: categoryId || null,
       },
     });
 
-    return NextResponse.json({ success: true, article });
+    // Sync process vector chunks
+    await processDocumentIngestion(doc.id, workspace.id, extractedText, filename, null, []);
+
+    return NextResponse.json({ success: true, document: doc });
   } catch (err) {
     console.error("[KnowledgeUploadPOST] Error:", err);
     return NextResponse.json({ error: `Internal Server Error: ${err instanceof Error ? err.message : String(err)}` }, { status: 500 });

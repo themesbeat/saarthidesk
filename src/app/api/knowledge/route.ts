@@ -3,8 +3,9 @@ import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import prisma from "@/lib/prisma";
 import { getOrCreateActiveWorkspace } from "@/lib/workspace";
+import { processDocumentIngestion } from "@/lib/rag-pipeline";
 
-export async function GET() {
+export async function GET(request: Request) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -15,12 +16,56 @@ export async function GET() {
 
   try {
     const workspace = await getOrCreateActiveWorkspace(session.user.id);
-    const articles = await prisma.knowledgeBase.findMany({
+    const { searchParams } = new URL(request.url);
+    const mode = searchParams.get("mode");
+
+    // Support fetching dashboard metrics, logs, categories, and documents through a single routing entry
+    if (mode === "analytics") {
+      const docsCount = await prisma.knowledgeDocument.count({ where: { workspaceId: workspace.id } });
+      const chunksCount = await prisma.knowledgeChunk.count({ where: { workspaceId: workspace.id } });
+      const categoriesCount = await prisma.knowledgeCategory.count({ where: { workspaceId: workspace.id } });
+      
+      const searchLogs = await prisma.knowledgeSearchLog.findMany({
+        where: { workspaceId: workspace.id },
+        orderBy: { createdAt: "desc" },
+        take: 50,
+      });
+
+      const trainingLogs = await prisma.knowledgeTrainingLog.findMany({
+        where: { workspaceId: workspace.id },
+        orderBy: { createdAt: "desc" },
+        take: 30,
+      });
+
+      return NextResponse.json({
+        docsCount,
+        chunksCount,
+        categoriesCount,
+        searchLogs,
+        trainingLogs
+      });
+    }
+
+    if (mode === "categories") {
+      const categories = await prisma.knowledgeCategory.findMany({
+        where: { workspaceId: workspace.id },
+        orderBy: { name: "asc" },
+      });
+      return NextResponse.json({ categories });
+    }
+
+    const documents = await prisma.knowledgeDocument.findMany({
       where: { workspaceId: workspace.id },
+      include: {
+        category: true,
+        chunks: {
+          select: { id: true }
+        }
+      },
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json({ articles });
+    return NextResponse.json({ documents });
   } catch (err) {
     console.error("[KnowledgeGET] Error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -37,17 +82,17 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { title, content, type } = await request.json();
+    const { title, content, type, status, visibility, categoryId, sourceUrl, tags } = await request.json();
 
     if (!content || !type) {
-      return NextResponse.json({ error: "Missing parameters" }, { status: 400 });
+      return NextResponse.json({ error: "Missing parameters content or type" }, { status: 400 });
     }
 
     const workspace = await getOrCreateActiveWorkspace(session.user.id);
-
     let finalTitle = title || "Untitled Source";
     let finalContent = content;
 
+    // Standard URL text scaping helper
     if (type === "URL") {
       try {
         const targetUrl = content.trim();
@@ -56,107 +101,136 @@ export async function POST(request: Request) {
         }
 
         const fetchController = new AbortController();
-        const fetchTimeout = setTimeout(() => fetchController.abort(), 12000); // 12-second timeout
+        const fetchTimeout = setTimeout(() => fetchController.abort(), 12000);
 
         const response = await fetch(targetUrl, {
           signal: fetchController.signal,
           headers: {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.5"
           }
         });
 
         clearTimeout(fetchTimeout);
 
         if (!response.ok) {
-          return NextResponse.json({ error: `Website returned status code ${response.status}: ${response.statusText}` }, { status: 400 });
+          return NextResponse.json({ error: `Website returned status code ${response.status}` }, { status: 400 });
         }
 
         const html = await response.text();
-
-        // 1. Strip boilerplates & non-content tags completely
         let cleanText = html;
         cleanText = cleanText.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "");
         cleanText = cleanText.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "");
-        cleanText = cleanText.replace(/<noscript[^>]*>[\s\S]*?<\/noscript>/gi, "");
-        cleanText = cleanText.replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, "");
-        cleanText = cleanText.replace(/<svg[^>]*>[\s\S]*?<\/svg>/gi, "");
         cleanText = cleanText.replace(/<nav[^>]*>[\s\S]*?<\/nav>/gi, "");
         cleanText = cleanText.replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, "");
         cleanText = cleanText.replace(/<header[^>]*>[\s\S]*?<\/header>/gi, "");
 
-        // 2. Extract title if not explicitly provided or if it's default
-        if (!title || title.startsWith("Website URL:") || title === "") {
+        if (!title || title === "Untitled Source" || title.startsWith("Website URL:")) {
           const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
           if (titleMatch && titleMatch[1]) {
-            finalTitle = titleMatch[1]
-              .replace(/<[^>]+>/g, "")
-              .replace(/&nbsp;/g, " ")
-              .replace(/&amp;/g, "&")
-              .replace(/&lt;/g, "<")
-              .replace(/&gt;/g, ">")
-              .replace(/&quot;/g, '"')
-              .replace(/\s+/g, " ")
-              .trim();
+            finalTitle = titleMatch[1].replace(/<[^>]+>/g, "").trim();
           }
         }
 
-        if (!finalTitle || finalTitle === "" || finalTitle === "Untitled Source") {
-          try {
-            const parsedUrl = new URL(targetUrl);
-            finalTitle = `Website: ${parsedUrl.hostname}${parsedUrl.pathname !== "/" ? parsedUrl.pathname : ""}`;
-          } catch {
-            finalTitle = `Website: ${targetUrl}`;
-          }
-        }
-
-        // 3. Strip all other HTML tags
         cleanText = cleanText.replace(/<[^>]+>/g, " ");
-
-        // 4. Decode common HTML entities
-        cleanText = cleanText
-          .replace(/&nbsp;/g, " ")
-          .replace(/&amp;/g, "&")
-          .replace(/&lt;/g, "<")
-          .replace(/&gt;/g, ">")
-          .replace(/&quot;/g, '"')
-          .replace(/&#39;/g, "'")
-          .replace(/&apos;/g, "'");
-
-        // 5. Clean up excessive whitespace
         cleanText = cleanText.replace(/\s+/g, " ").trim();
 
         if (cleanText.length < 30) {
-          return NextResponse.json({ error: "The crawler did not find enough readable content on this page. Check the URL and ensure it has public text." }, { status: 400 });
-        }
-
-        // 6. Truncate to maximum performant size (8000 characters)
-        if (cleanText.length > 8000) {
-          cleanText = cleanText.substring(0, 8000) + "... [truncated]";
+          return NextResponse.json({ error: "The crawler did not find enough readable content." }, { status: 400 });
         }
 
         finalContent = cleanText;
-
-      } catch (err) {
-        console.error("[KnowledgeCrawler] Fetch error:", err);
-        const errMsg = err instanceof Error
-          ? (err.name === "AbortError" ? "Request timed out after 12 seconds." : err.message)
-          : String(err);
-        return NextResponse.json({ error: `Connection failed: ${errMsg}` }, { status: 400 });
+      } catch (err: any) {
+        return NextResponse.json({ error: `Connection failed: ${err?.message || err}` }, { status: 400 });
       }
     }
 
-    const article = await prisma.knowledgeBase.create({
+    // Sitemap parser
+    if (type === "SITEMAP") {
+      try {
+        const sitemapUrl = content.trim();
+        const response = await fetch(sitemapUrl);
+        if (!response.ok) {
+          return NextResponse.json({ error: `Failed to fetch sitemap: HTTP ${response.status}` }, { status: 400 });
+        }
+        
+        const xmlText = await response.text();
+        // Simple regex XML parser to extract loc tags
+        const urlMatches = xmlText.match(/<loc>(https?:\/\/[^<]+)<\/loc>/gi) || [];
+        const urls = urlMatches.map(val => val.replace(/<\/?loc>/g, "").trim()).slice(0, 5); // Index top 5 links to avoid execution overload
+
+        if (urls.length === 0) {
+          return NextResponse.json({ error: "No public URL records found in this sitemap XML file." }, { status: 400 });
+        }
+
+        const documentsCreated = [];
+        for (const target of urls) {
+          try {
+            // Scrape sub-urls
+            const subRes = await fetch(target);
+            if (!subRes.ok) continue;
+            
+            const html = await subRes.text();
+            let clean = html.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+                            .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "");
+            
+            let urlTitle = target;
+            const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+            if (titleMatch && titleMatch[1]) {
+              urlTitle = titleMatch[1].replace(/<[^>]+>/g, "").trim();
+            }
+
+            clean = clean.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+            
+            const doc = await prisma.knowledgeDocument.create({
+              data: {
+                workspaceId: workspace.id,
+                title: `Sitemap Link: ${urlTitle}`,
+                content: clean,
+                type: "URL",
+                sourceUrl: target,
+                status: "PUBLISHED",
+                visibility: "PUBLIC",
+                categoryId,
+              }
+            });
+
+            // Index chunks asynchronously in processing pipeline
+            processDocumentIngestion(doc.id, workspace.id, clean, doc.title, null, tags || []);
+            documentsCreated.push(doc);
+          } catch (crawlErr) {
+            console.error("Failed scraping sitemap child URL:", target, crawlErr);
+          }
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: `Sitemap parsed successfully. Processing ${documentsCreated.length} child URLs.`,
+          documents: documentsCreated,
+        });
+
+      } catch (err: any) {
+        return NextResponse.json({ error: `Sitemap crawler failed: ${err?.message || err}` }, { status: 400 });
+      }
+    }
+
+    // Standard single Document creation
+    const doc = await prisma.knowledgeDocument.create({
       data: {
         workspaceId: workspace.id,
         title: finalTitle,
         content: finalContent,
         type,
+        sourceUrl: sourceUrl || (type === "URL" ? content : null),
+        status: status || "PUBLISHED",
+        visibility: visibility || "PUBLIC",
+        categoryId: categoryId || null,
       },
     });
 
-    return NextResponse.json({ success: true, article });
+    // Ingest chunks synchronously for deterministic feedback, fallback runs seamlessly without blocking Next execution
+    await processDocumentIngestion(doc.id, workspace.id, finalContent, finalTitle, null, tags || []);
+
+    return NextResponse.json({ success: true, document: doc });
   } catch (err) {
     console.error("[KnowledgePOST] Error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -179,17 +253,19 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Missing parameter id" }, { status: 400 });
     }
 
-    // Verify ownership
     const workspace = await getOrCreateActiveWorkspace(session.user.id);
-    const article = await prisma.knowledgeBase.findFirst({
+    
+    // Verify document belongs to the active workspace
+    const doc = await prisma.knowledgeDocument.findFirst({
       where: { id, workspaceId: workspace.id },
     });
 
-    if (!article) {
-      return NextResponse.json({ error: "Article not found or access denied" }, { status: 404 });
+    if (!doc) {
+      return NextResponse.json({ error: "Document not found or access denied" }, { status: 404 });
     }
 
-    await prisma.knowledgeBase.delete({
+    // Cascade delete automatically handles chunks via onDelete: Cascade on Prisma relational layers
+    await prisma.knowledgeDocument.delete({
       where: { id },
     });
 

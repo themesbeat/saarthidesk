@@ -24,7 +24,11 @@ import {
   Loader2,
   AlertCircle,
   HelpCircle,
-  Lock
+  Lock,
+  Sparkles,
+  Zap,
+  X,
+  RotateCw
 } from "lucide-react";
 
 interface Message {
@@ -76,6 +80,15 @@ export default function InboxPage() {
   const [simulationRole, setSimulationRole] = useState<"USER" | "CUSTOMER">("USER");
   const [messageMode, setMessageMode] = useState<"REPLY" | "NOTE">("REPLY");
 
+  // AI Copilot dynamic states
+  const [copilotSuggestion, setCopilotSuggestion] = useState<{
+    text: string;
+    confidence: number;
+    source: string;
+    triggerQuery: string;
+  } | null>(null);
+  const [isCopilotLoading, setIsCopilotLoading] = useState(false);
+
   const fetchConversations = useCallback(async (autoSelectFirst = false) => {
     try {
       const res = await fetch("/api/inbox/conversations");
@@ -118,6 +131,43 @@ export default function InboxPage() {
     }
   }, [selectedConversationId, activeConversation]);
 
+  // AI Copilot fetcher
+  const fetchCopilotSuggestion = useCallback(async (id: string) => {
+    if (!id) return;
+    setIsCopilotLoading(true);
+    try {
+      const res = await fetch("/api/inbox/copilot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversationId: id }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.suggestion) {
+          setCopilotSuggestion(data.suggestion);
+        } else {
+          setCopilotSuggestion(null);
+        }
+      } else {
+        setCopilotSuggestion(null);
+      }
+    } catch (err) {
+      console.error("Error fetching copilot suggestion:", err);
+      setCopilotSuggestion(null);
+    } finally {
+      setIsCopilotLoading(false);
+    }
+  }, []);
+
+  // Sync AI Copilot suggested replies when conversation selection changes
+  useEffect(() => {
+    if (selectedConversationId) {
+      fetchCopilotSuggestion(selectedConversationId);
+    } else {
+      setCopilotSuggestion(null);
+    }
+  }, [selectedConversationId, fetchCopilotSuggestion]);
+
   // Dispatch agent or simulated customer message
   const handleSendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -142,6 +192,15 @@ export default function InboxPage() {
       if (res.ok) {
         // Trigger a fresh database reload to retrieve agent message & triggered AI auto-replies
         await fetchConversations();
+        
+        // Reactively update AI Copilot suggestion status
+        if (simulationRole === "CUSTOMER") {
+          setTimeout(() => {
+            fetchCopilotSuggestion(selectedConversationId);
+          }, 1500);
+        } else {
+          setCopilotSuggestion(null);
+        }
       }
     } catch (err) {
       console.error("Error dispatching message:", err);
@@ -453,6 +512,103 @@ export default function InboxPage() {
 
             {/* Input Area */}
             <div className="p-4 bg-background/80 backdrop-blur-md border-t border-border/50 z-10">
+              {/* AI Copilot Suggestion Box */}
+              {isCopilotLoading && (
+                <div className="mb-4 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 border border-indigo-500/10 rounded-2xl p-4 animate-pulse">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles className="w-4 h-4 text-indigo-400 animate-spin" />
+                    <span className="text-xs font-semibold text-indigo-300">Saarthi Copilot drafting response...</span>
+                  </div>
+                  <div className="h-3 bg-muted rounded-full w-3/4 mb-2"></div>
+                  <div className="h-3 bg-muted rounded-full w-1/2"></div>
+                </div>
+              )}
+
+              {!isCopilotLoading && copilotSuggestion && (
+                <div className="mb-4 bg-gradient-to-r from-indigo-500/10 via-purple-500/5 to-slate-950 border border-indigo-500/30 rounded-2xl p-4 shadow-[0_0_20px_rgba(99,102,241,0.1)] relative overflow-hidden group">
+                  <div className="absolute top-3 right-3 p-1 opacity-55 hover:opacity-100 transition-opacity">
+                    <button 
+                      type="button" 
+                      onClick={() => setCopilotSuggestion(null)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-indigo-500/20 rounded-lg p-1">
+                        <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
+                      </div>
+                      <span className="text-xs font-bold text-indigo-300">Saarthi AI Suggested Draft</span>
+                      <Badge className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] px-1.5 py-0">
+                        Confidence {copilotSuggestion.confidence}%
+                      </Badge>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground mr-6 truncate max-w-[200px]">
+                      Grounded on: <strong className="text-indigo-200">{copilotSuggestion.source}</strong>
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-foreground/90 bg-slate-950/40 p-3 rounded-xl border border-border/20 mb-3 italic">
+                    "{copilotSuggestion.text}"
+                  </p>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setMessageInput(copilotSuggestion.text)}
+                      className="h-8 text-xs font-semibold hover:bg-primary/20 text-indigo-300 border-indigo-500/30 hover:border-indigo-500/60"
+                    >
+                      <Zap className="w-3.5 h-3.5 mr-1" /> Use as Draft
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={async () => {
+                        setIsSending(true);
+                        try {
+                          const res = await fetch("/api/inbox/message", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              conversationId: selectedConversationId,
+                              content: copilotSuggestion.text,
+                              sender: "USER",
+                              messageType: "TEXT",
+                            }),
+                          });
+                          if (res.ok) {
+                            setCopilotSuggestion(null);
+                            await fetchConversations();
+                          }
+                        } catch (err) {
+                          console.error("Error sending copilot response:", err);
+                        } finally {
+                          setIsSending(false);
+                        }
+                      }}
+                      className="h-8 text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20"
+                    >
+                      Send Instantly
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => fetchCopilotSuggestion(selectedConversationId!)}
+                      className="w-8 h-8 rounded-full text-muted-foreground hover:text-foreground"
+                      title="Regenerate suggested reply"
+                    >
+                      <RotateCw className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <form onSubmit={handleSendMessage} className="bg-card border border-border/50 rounded-2xl p-2 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all">
                 {simulationRole === "USER" && (
                   <div className="flex items-center gap-1.5 mb-2 px-2 border-b border-border/10 pb-2">
